@@ -147,15 +147,25 @@ def fill_rect(x, y, width, height, color):
 
     _rs.high()
     _cs.low()
-    _bus_write16_fast(color, width*height)
+    _bus_write16(color, width*height)
     _cs.high()
     #print("done",f"{time.ticks_diff(time.ticks_ms(),t0):,}")
 
-def fb_hello_world():
-    fb = framebuf.FrameBuffer(bytearray(100*100*2),100,100,framebuf.RGB565)
-    fb.text("Hello World", 0, 0,-1)
-    set_window(0,0,100,100)
-    
+def fb_hello_world(x:int=0,y:int=0):
+    buffer:bytearray = bytearray(200*100*2)
+    fb = framebuf.FrameBuffer(buffer,200,100,framebuf.RGB565)
+    fb.text("Hello World", x, y,-1)
+    set_window(x+0,y+0,x+199,y+99)
+    def fb_show():
+        _rs.high()
+        _cs.low()
+        for byte in range(len(buffer)//2):
+            for i in range(16):
+                _dpins[15-i].value((buffer[byte*2] >> i) & 1)
+            _wr.low()
+            _wr.high()
+        _cs.high()
+    fb_show()
 
 @micropython.viper
 def pixel(x:int,y:int,color:int):
@@ -196,6 +206,7 @@ def main():
     fill_rect(90,70,48,80,0b11111100000)
     fill_rect(90,170,48,80,color565(0,255,0))
     fill_rect(90,300,48,80,cx_bright(GREEN,50))
+    fb_hello_world()
     for o in range(45):
         continue
         for i in range(21):
