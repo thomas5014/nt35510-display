@@ -102,7 +102,32 @@ def _bus_write16_fast(v:int, count:int):
 
 
 @micropython.viper
-def _bus_write16(v:int, count:int):
+def _bus_write16(v:int):
+    pout = ptr32(GPIO_OUT)
+    v:int = pout[0] & ~DATA_MASK | (v & DATA_MASK)
+
+    pout[0] = v & ~WR_MASK
+    pout[0] = v | WR_MASK
+
+@micropython.viper
+def _bus_write16_buf(buf):
+    pout = ptr32(GPIO_OUT)
+    base_low:int = pout[0] & ~DATA_MASK & ~WR_MASK      # clear values and WR
+
+    i:int = 0
+    buf_p = ptr16(buf)
+    buf_len:int = int(len(buf)) // 2
+
+    while i < buf_len:
+        low:int = base_low | buf_p[i]
+        pout[0] = low
+        pout[0] = low | WR_MASK
+        i += 1
+
+
+
+@micropython.viper
+def _bus_write16_slow(v:int, count:int):
     for i in range(16):
         _dpins[i].value((v >> i) & 1)
 
@@ -113,13 +138,13 @@ def _bus_write16(v:int, count:int):
 def _cmd(c):
     _rs.low()
     _cs.low()
-    _bus_write16(c,1)
+    _bus_write16(c)
     _cs.high()
 
 def _data(c):
     _rs.high()
     _cs.low()
-    _bus_write16(c,1)
+    _bus_write16(c)
     _cs.high()
 
 def hw_reset():
@@ -147,21 +172,56 @@ def fill_rect(x, y, width, height, color):
 
     _rs.high()
     _cs.low()
-    _bus_write16(color, width*height)
+    _bus_write16_fast(color, width*height)
     _cs.high()
     #print("done",f"{time.ticks_diff(time.ticks_ms(),t0):,}")
 
+
+
+class MyFrameBuffer(framebuf.FrameBuffer):
+    def __init__(self, width, height, buf=None):
+        self.buffer = buf if buf else bytearray(width * height * 2)
+        self.width = width
+        self.height = height
+        super().__init__(self.buffer, self.width, self.height, framebuf.RGB565)
+
+
+def draw_buf(x, y, width, height, buf):
+    set_window(x, y, x + width - 1, y + height - 1)
+    _rs.high()
+    _cs.low()
+    _bus_write16_buf(buf)
+    _cs.high()
+
+
+def draw_framebuf(x, y, fb):
+    # only works with MyFrameBuffer
+    draw_buf(x, y, fb.width, fb.height, fb.buffer)
+
+
+
 def fb_hello_world(x:int=0,y:int=0):
-    buffer:bytearray = bytearray(200*100*2)
-    fb = framebuf.FrameBuffer(buffer,200,100,framebuf.RGB565)
-    fb.text("Hello World", x, y,-1)
-    set_window(x+0,y+0,x+199,y+99)
+    fb = MyFrameBuffer(200,50)
+
+    fb.text("Hello World", x, y, color565(0,0,255))
+    fb.text("red World", x, y+15, color565(255,0,0))
+    fb.text("Green World", x, y+30, color565(0, 255,0))
+    draw_framebuf(x, y, fb)
+
+def fb_hello_world_old(x:int=0,y:int=0):
+    buffer:bytearray = bytearray(200*50*2)
+    fb = framebuf.FrameBuffer(buffer,200,50,framebuf.RGB565)
+    fb.text("Hello World", x, y, color565(0,0,255))
+    set_window(x+0,y+0,x+199,y+49)
     def fb_show():
         _rs.high()
         _cs.low()
         for byte in range(len(buffer)//2):
-            for i in range(16):
-                _dpins[15-i].value((buffer[byte*2] >> i) & 1)
+            if byte < 10:
+                print(buffer[byte*2])
+            for i in range(8):
+                _dpins[i+8].value((buffer[byte*2] >> i) & 1)
+                _dpins[i].value((buffer[byte*2+1] >> i) & 1)
             _wr.low()
             _wr.high()
         _cs.high()
@@ -172,7 +232,7 @@ def pixel(x:int,y:int,color:int):
     set_window(x,y,x,y)
     _rs.high()
     _cs.low()
-    _bus_write16_fast(color, 1)
+    _bus_write16(color)
     _cs.high()
     
 
@@ -207,6 +267,7 @@ def main():
     fill_rect(90,170,48,80,color565(0,255,0))
     fill_rect(90,300,48,80,cx_bright(GREEN,50))
     fb_hello_world()
+
     for o in range(45):
         continue
         for i in range(21):
@@ -220,6 +281,8 @@ def main():
             pixel(100+i*2+o%2,300+o,BLUE)
     #fill_rect(160,300,60,10,BLUE)
 
+    return
+
     t0 = time.ticks_ms()
     w:int = 480
     h:int = 800
@@ -230,6 +293,8 @@ def main():
 
     delta = time.ticks_diff(time.ticks_ms(),t0)
     print(f"{delta/1000} sec ({300/delta*1000} fps)")
+    return
+
     print(machine.freq())
     w:int = 480
     h:int = 800
