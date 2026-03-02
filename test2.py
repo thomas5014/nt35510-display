@@ -3,6 +3,7 @@ import time
 from machine import Pin, PWM # type: ignore
 import machine, micropython, framebuf # type: ignore
 machine.freq(300_000_000)
+from color_control import PALETTE_WHITE
 
 W = 480
 H = 800
@@ -245,6 +246,64 @@ def pixel_helloworld(x,y,color):
     world_y = [0,1,2,3,4,4,2,3,4,0,1,2,3,4,0,1,2,3,4,0,4,0,1,2,3,4,0,1,2,3,4,0,2,0,1,3,4,0,1,2,3,4,4,4,0,1,2,3,4,0,4,1,2,3]
     for i in range(len(world_x)):
         pixel(x+world_x[i],y+7+world_y[i],color)
+        
+font_buffer = None
+class Font:
+    def __init__(self, path):
+        name = path.split("/")[-1]
+        size = name.split(".")[0].split('-')[-1]
+        width, height = size.split("x")
+        self.char_width = int(width)
+        self.char_height = int(height)
+        row_size = (self.char_width + 3) // 4
+        self.bytes_per_char = row_size * self.char_height
+        num_chars = 127-32
+        data_len = num_chars + num_chars * self.bytes_per_char
+        global font_buffer
+
+        f = open(path, "rb")
+        if font_buffer is None:
+            data = memoryview(bytearray(f.read(data_len)))
+            print(f"Loaded {len(data)} bytes from {path}, no buffer")
+        else:
+            count = f.readinto(font_buffer)
+            if count < 1:
+                print("Failed to read font", path)
+            elif count >= len(font_buffer):
+                print("Ran out of font buffer", count, len(font_buffer))
+            else:
+                data = font_buffer[:count]
+                font_buffer = font_buffer[count:]
+                print(f"Loaded {len(data)} bytes from {path}, {len(font_buffer)} buf remaining")
+
+        self.widths = data[0:num_chars]
+        self.data = data[num_chars:]
+
+        #print("Font", name, self.char_width, self.char_height, data_len, len(self.data))
+
+    def draw_char(self, c, fb, x, y, key=0, palette=None):
+        v = ord(c)
+        if v < 32 or v > 126:
+            v = 32
+        v -= 32
+
+        index = v * self.bytes_per_char
+        data = self.data[index: index+self.bytes_per_char]
+        #print("char", c, index, len(data), len(self.data))
+        char_fb = framebuf.FrameBuffer(data, self.char_width, self.char_height, framebuf.GS2_HMSB)
+        fb.blit(char_fb, x, y, key, palette if palette else PALETTE_WHITE)
+        draw_framebuf(x, y, fb)
+        return self.widths[v]
+    
+    def draw_text(self, text, fb, x, y, key=0, palette=None):
+        if not text:
+            return x, y
+        for c in text:
+            x += self.draw_char(c, fb, x, y, key, palette)
+
+        return x, y+self.char_height
+    
+font1 = Font("/InterBold-14-15x18.raw2")
 
 def main():
     # Just send sleep-out and fill small area red
@@ -267,6 +326,7 @@ def main():
     fill_rect(90,170,48,80,color565(0,255,0))
     fill_rect(90,300,48,80,cx_bright(GREEN,50))
     fb_hello_world()
+    font1.draw_text("Aaaaah", MyFrameBuffer(90,30), 100, 600)
 
     for o in range(45):
         continue
@@ -281,7 +341,7 @@ def main():
             pixel(100+i*2+o%2,300+o,BLUE)
     #fill_rect(160,300,60,10,BLUE)
 
-    return
+    
 
     t0 = time.ticks_ms()
     w:int = 480
@@ -293,19 +353,18 @@ def main():
 
     delta = time.ticks_diff(time.ticks_ms(),t0)
     print(f"{delta/1000} sec ({300/delta*1000} fps)")
-    return
 
     print(machine.freq())
     w:int = 480
     h:int = 800
     for i in range(0,100):
         fill_rect(0,0,w,h, color565(0xff, 0, 0))
-        time.sleep(1)
+        # time.sleep(1)
         fill_rect(0,0,w,h, color565(0, 0xff, 0))
-        time.sleep(1)
+        # time.sleep(1)
         fill_rect(0,0,w,h, color565(0, 0, 0xff))
-        time.sleep(1)
-    return
+        # time.sleep(1)
+    
 
     t0 = time.ticks_ms()
     for i in range(100):
