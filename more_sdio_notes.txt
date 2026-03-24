@@ -1,0 +1,18 @@
+The current config has a conflict: SDIO D0-D3 are set to GPIO36-39, which are already used by the CYW43 WiFi chip.
+
+  Unavailable GPIOs:                                                                                                                                                                           
+  - GPIO36: CYW43 REG_ON
+  - GPIO37: CYW43 DATA                                                                                                                                                                         
+  - GPIO38: CYW43 CS                                                                                                                                                                         
+  - GPIO39: CYW43 CLOCK                                                                                                                                                                        
+  - GPIO47: PSRAM CS                                                                                                                                                                         
+                    
+  So the current config in sdio_rp2350_config.h:                                                                                                                                               
+  SDIO_CLK  34  ✓                                                                                                                                                                              
+  SDIO_CMD  35  ✓                                                                                                                                                                              
+  SDIO_D0   36  ✗ conflicts with CYW43                                                                                                                                                         
+  SDIO_D1   37  ✗ conflicts with CYW43                                                                                                                                                         
+  SDIO_D2   38  ✗ conflicts with CYW43                                                                                                                                                         
+  SDIO_D3   39  ✗ conflicts with CYW43                                                                                                                                                         
+                                                                                                                                                                                               
+  Valid options are GPIO0–35 or GPIO40–46. The actual correct pins depend on how the MicroSD slot is wired on the board PCB — you'd need to check the Waveshare RP2350B-Plus-W schematic.
