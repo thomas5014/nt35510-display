@@ -87,6 +87,7 @@ def flood(color565, count):
     cs(1)
 
 def demo():
+    print("starting")
     bl(1)
     time.sleep(.5)
     bl(0)
@@ -94,6 +95,7 @@ def demo():
     bl(1)
     reset_panel()
     init_simple()
+    print("init simple")
     set_window_full()
     # write a big chunk of blue; should see a flash/stripe if GRAM is receiving
     flood(0x001F, WIDTH*80)     # a few rows
@@ -101,5 +103,6 @@ def demo():
     for color in (0x0000, 0xF800, 0x07E0, 0x001F, 0xFFFF):
         set_window_full()
         flood(color, WIDTH*HEIGHT)
+
 
 demo()

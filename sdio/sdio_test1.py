@@ -3,7 +3,14 @@ import uctypes
 try:            
     sd = sdio.SDCard()
 except OSError as e:
-    print("errno:", e.args[0], errno.errorcode.get(-e.args[0], "?"))       
+    print("errno:", e.args[0], errno.errorcode.get(-e.args[0], "?"))      
+# card = "PNY 32gb u1 a1 elite v10 micro sd hc" 
+card = "SanDisk 32gb c10 micro sd hc 1"
+print("SD Card: ",card)
+import machine
+
+machine.freq(80_000_000)
+print(f"Machine freq: {machine.freq()}")
 
 import sdio                                                                                                                                                                                
 d = sdio.SDCard()                                                                                                                                                                          

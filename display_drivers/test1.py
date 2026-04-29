@@ -2,7 +2,7 @@
 import time
 from machine import Pin, PWM
 import machine 
-machine.freq(100_000_000)
+machine.freq(200_000_000)
 
 W = 480
 H = 800
@@ -75,8 +75,6 @@ ROT_INV_LAND   = 0xE0 | 0x08      # MX|MY|MV
 
 def color565(r,g,b):
     return ((r & 0xF8)<<8) | ((g & 0xFC)<<3) | (b>>3)
-
-
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-from nt35510 import NT35510, color565, MyFrameBuffer, cx_bright
+from display_drivers.nt35510 import NT35510, color565, MyFrameBuffer, cx_bright
 from color_control import PALETTE_WHITE
 import framebuf, gc, micropython, os
 
@@ -676,3 +676,17 @@ mem("end")
 # GC: total: 497408, used: 55744, free: 441664
 #  No. of 1-blocks: 257, 2-blocks: 168, max blk sz: 460, max free sz: 25195
 # total time: 1,020,092
+# Mem start 8608240
+# stack: 756 out of 12032
+# GC: total: 8641216, used: 32976, free: 8608240
+#  No. of 1-blocks: 115, 2-blocks: 29, max blk sz: 359, max free sz: 512276
+# total time: 1,543,426
+# Loaded 6935 bytes from /InterBold-14-15x18.raw2, no buffer
+# draw_text-test0: prep fb 337,203us, draw chars, control 10us - 4cpu, letters per second: 9003.48, us per letter: 111.068
+# 240000000
+
+# Mem end 8576784
+# stack: 756 out of 12032
+# GC: total: 8641216, used: 64432, free: 8576784
+#  No. of 1-blocks: 265, 2-blocks: 167, max blk sz: 1035, max free sz: 512276
+# total time: 1,543,985

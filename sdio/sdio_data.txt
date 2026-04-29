@@ -1,0 +1,813 @@
+>>> 
+SD Card:  PNY 32gb u1 a1 elite v10 micro sd hc
+Machine freq: 20000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-1887440777, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (2003865584, -1)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=99
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+  0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+352: 00 00 00 00 00 00 00 00 00 08 0e ff ff 0b fe ff ff 00 20 00 00 00 88 9b 03 00 00 00 00 00 00 00
+384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+416: 00 00 00 00 00 00 00 00 00 55 aa 9c 25 07 01 b9 79 87 8f ff ff ff ff ff ff ff ff ff ff ff ff ff
+448: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+480: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0xff 0xff
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-2146893944, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (-142641272, -1)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=104
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-2021130481, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=94
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+0xff 0xff
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-259518480, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (-2005465201, -1)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=98
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+00000000000000000000000000000000
+PIO1 GPIOBASE = 0
+PINCTRL: 0x14000000
+  in_base=0  out_base=0  set_base=0  sideset_base=0
+GPIO24-29 raw: 111111
+  GPIO24(CLK)=1  GPIO25(CMD)=1  GPIO26(D0)=1
+  GPIO27(D1)=1  GPIO28(D2)=1  GPIO29(D3)=1
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-2021621624, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (-2005434377, -1)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=163
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+00000000000000000000000000000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-2021654401, -1)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=72
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+Traceback (most recent call last):
+  File "<stdin>", line 74, in <module>
+OSError: [Errno 19] ENODEV
+
+>>> 
+SD Card:  PNY 32gb u1 a1 elite v10 micro sd hc
+Machine freq: 40000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-2013298568, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (-1895239433, -1)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=45
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+  0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+416: 00 80 ef ff f0 bf ef ff f0 02 00 00 00 08 89 b0 30 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+448: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+480: 05 5a a9 c2 50 70 1b 97 98 78 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0xff 0xff
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-1895272201, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (-2147448840, -1)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=47
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-2013298568, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d[SDIO ERR] SDIO data rx timeout (1, 0)
+readblocks: rx_poll failed st=5
+Traceback (most recent call last):
+  File "<stdin>", line 28, in <module>
+OSError: [Errno 5] EIO
+
+>>> 
+SD Card:  PNY 32gb u1 a1 elite v10 micro sd hc
+Machine freq: 60000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-2004354824, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (2138540024, -1)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=27
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 55 aa 9c 25 07 01 b9 79 87 8f ff ff ff ff ff 
+  0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 08 0e ff ff 0b fe ff ff 00 20 00 00 00 88 9b
+448: 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 55 aa 9c 25 07 01 b9 79 87 8f ff ff ff ff ff
+0xff 0xff
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-2004354824, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (2138540024, -1)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=27
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 55 aa 9c 25 07 01 b9 79 87 8f ff ff ff ff ff 
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-126324624, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d r[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=26
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 05 5a a9 c2 50 70 1b 97 98 78 ff ff ff 
+0xff 0xff
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-125368328, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (125800327, -1)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=26
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 55 aa 9c 25 07 01 b9 79 87 8f ff ff ff ff 
+00000000000000000000000000000000
+PIO1 GPIOBASE = 0
+PINCTRL: 0x14000000
+  in_base=0  out_base=0  set_base=0  sideset_base=0
+GPIO24-29 raw: 111111
+  GPIO24(CLK)=1  GPIO25(CMD)=1  GPIO26(D0)=1
+  GPIO27(D1)=1  GPIO28(D2)=1  GPIO29(D3)=1
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-2013298568, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (-1895239433, -1)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=45
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+00000000000000000000000000000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-2021068672, -1879048[SDIO ERR] SDIO data rx timeout (1, 0)
+readblocks: rx_poll failed st=5
+Traceback (most recent call last):
+  File "<stdin>", line 74, in <module>
+OSError: [Errno 5] EIO
+
+>>> 
+SD Card:  PNY 32gb u1 a1 elite v10 micro sd hc
+Machine freq: 80000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-2004844657, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (2012739711, -1)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=28
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 05 5a a9 c2 50 70 1b 97 98 78 ff ff ff ff ff 
+  0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 ef ff f0 bf ef ff f0 02 00 00 00 08 89
+448: b0 30 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 c2 50 70 1b 97 98 78 ff ff ff ff ff
+0xff 0xff
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-15759352, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1886881928, -1)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=30
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  5a a9 c2 50 70 1b 97 98 78 ff ff ff ff ff ff ff 
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-1886943481, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d re[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=24
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 55 aa 9c 25 07 01 b9 79 87 8f ff ff 
+0xff 0xff
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-2004354824, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (2138540024, -1)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=27
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 55 aa 9c 25 07 01 b9 79 87 8f ff ff ff ff ff 
+00000000000000000000000000000000
+PIO1 GPIOBASE = 0
+PINCTRL: 0x14000000
+  in_base=0  out_base=0  set_base=0  sideset_base=0
+GPIO24-29 raw: 111110
+  GPIO24(CLK)=0  GPIO25(CMD)=1  GPIO26(D0)=1
+  GPIO27(D1)=1  GPIO28(D2)=1  GPIO29(D3)=1
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (259524600, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (-1262[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=42
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+00000000000000000000000000000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-2029025032, -1)
+[SDIO ERR] SDIO [SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=33
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  50 70 1b 97 98 78 ff ff ff ff ff ff ff ff ff ff 
+Traceback (most recent call last):
+  File "<stdin>", line 74, in <module>
+OSError: [Errno 19] ENODEV
+
+>>> 
+SD Card:  PNY 32gb u1 a1 elite v10 micro sd hc
+Machine freq: 100000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-267386881, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (-2021166857, 2030043135)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=22
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 05 5a a9 c2 50 70 1b 97 98 
+  0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 ef ff f0 bf ef ff f0
+448: 02 00 00 00 08 89 b0 30 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 c2 50 70 1b 97 98
+0x97 0x98
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (9437175, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (2029551360, -1)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=22
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 55 aa 9c 25 07 01 b9 79 87 8f 
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-2020636432, -2020605953)
+[SDIO ERR] SDIO CRC hi: compute[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 55 aa 9c 25 
+0x9c 0x25
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1895305215, -1)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1751611512, -1751615233)
+00000000000000000000000000000000
+PIO1 GPIOBASE = 0
+PINCTRL: 0x14000000
+  in_base=0  out_base=0  set_base=0  sideset_base=0
+GPIO24-29 raw: 111110
+  GPIO24(CLK)=0  GPIO25(CMD)=1  GPIO26(D0)=1
+  GPIO27(D1)=1  GPIO28(D2)=1  GPIO29(D3)=1
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -17516152[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+00000000000000000000000000000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (2030008432, -1)
+[SDIO ERR] SDIO C[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=25
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 05 5a a9 c2 50 70 1b 97 98 78 ff ff 
+Traceback (most recent call last):
+  File "<stdin>", line 74, in <module>
+OSError: [Errno 19] ENODEV
+
+>>> 
+SD Card:  PNY 32gb u1 a1 elite v10 micro sd hc
+Machine freq: 120000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+  0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 ef
+448: ff f0 bf ef ff f0 02 00 00 00 08 89 b0 30 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9
+0x5a 0xa9
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-1736902513, -1736900609)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1484778599, 1349524375)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=17
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 c2 
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] [SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+0x5a 0xa9
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+00000000000000000000000000000000
+PIO1 GPIOBASE = 0
+PINCTRL: 0x14000000
+  in_base=0  out_base=0  set_base=0  sideset_base=0
+GPIO24-29 raw: 111111
+  GPIO24(CLK)=1  GPIO25(CMD)=1  GPIO26(D0)=1
+  GPIO27(D1)=1  GPIO28(D2)=1  GPIO29(D3)=1
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-2020636432, -2020605953)
+[SDIO ERR] SDIO CRC hi: co[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 55 aa 9c 25 
+00000000000000000000000000000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (2021591055, -1)
+[SDIO ERR] SDIO C[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=19
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 05 5a a9 c2 50 70 
+Traceback (most recent call last):
+  File "<stdin>", line 74, in <module>
+OSError: [Errno 19] ENODEV
+
+>>> 
+SD Card:  PNY 32gb u1 a1 elite v10 micro sd hc
+Machine freq: 140000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+  0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 ef
+448: ff f0 bf ef ff f0 02 00 00 00 08 89 b0 30 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9
+0x5a 0xa9
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] [SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+0x5a 0xa9
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+00000000000000000000000000000000
+PIO1 GPIOBASE = 0
+PINCTRL: 0x14000000
+  in_base=0  out_base=0  set_base=0  sideset_base=0
+GPIO24-29 raw: 111111
+  GPIO24(CLK)=1  GPIO25(CMD)=1  GPIO26(D0)=1
+  GPIO27(D1)=1  GPIO28(D2)=1  GPIO29(D3)=1
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: com[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+00000000000000000000000000000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ER[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+Traceback (most recent call last):
+  File "<stdin>", line 74, in <module>
+OSError: [Errno 19] ENODEV
+
+>>> 
+SD Card:  PNY 32gb u1 a1 elite v10 micro sd hc
+Machine freq: 160000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+  0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 ef
+448: ff f0 bf ef ff f0 02 00 00 00 08 89 b0 30 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9
+0x5a 0xa9
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (-1736902513, -1736900609)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1484778599, 1349524375)
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+0x5a 0xa9
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+00000000000000000000000000000000
+PIO1 GPIOBASE = 0
+PINCTRL: 0x14000000
+  in_base=0  out_base=0  set_base=0  sideset_base=0
+GPIO24-29 raw: 111111
+  GPIO24(CLK)=1  GPIO25(CMD)=1  GPIO26(D0)=1
+  GPIO27(D1)=1  GPIO28(D2)=1  GPIO29(D3)=1
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: com[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+00000000000000000000000000000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (2021166856, 2030043135)
+[SDIO ERR[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=18
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 05 5a a9 c2 50 
+Traceback (most recent call last):
+  File "<stdin>", line 74, in <module>
+OSError: [Errno 19] ENODEV
+
+>>> 
+SD Card:  PNY 32gb u1 a1 elite v10 micro sd hc
+Machine freq: 180000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+  0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 ef
+448: ff f0 bf ef ff f0 02 00 00 00 08 89 b0 30 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9
+0x5a 0xa9
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] [SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+0x5a 0xa9
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+00000000000000000000000000000000
+PIO1 GPIOBASE = 0
+PINCTRL: 0x14000000
+  in_base=0  out_base=0  set_base=0  sideset_base=0
+GPIO24-29 raw: 111110
+  GPIO24(CLK)=0  GPIO25(CMD)=1  GPIO26(D0)=1
+  GPIO27(D1)=1  GPIO28(D2)=1  GPIO29(D3)=1
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: com[SDIO ERR] SDIO data rx timeout (1, 0)
+readblocks: rx_poll failed st=5
+Traceback (most recent call last):
+  File "<stdin>", line 72, in <module>
+OSError: [Errno 5] EIO
+
+>>> 
+SD Card:  PNY 32gb u1 a1 elite v10 micro sd hc
+Machine freq: 200000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+  0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 ef
+448: ff f0 bf ef ff f0 02 00 00 00 08 89 b0 30 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9
+0x5a 0xa9
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] [SDIO ERR] SDIO data rx timeout (1, 0)
+readblocks: rx_poll failed st=5
+Traceback (most recent call last):
+  File "<stdin>", line 28, in <module>
+OSError: [Errno 5] EIO
+
+>>> 
+SD Card:  PNY 32gb u1 a1 elite v10 micro sd hc
+Machine freq: 220000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+  0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 ef
+448: ff f0 bf ef ff f0 02 00 00 00 08 89 b0 30 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9
+0x5a 0xa9
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] [SDIO ERR] SDIO data rx timeout (1, 0)
+readblocks: rx_poll failed st=5
+Traceback (most recent call last):
+  File "<stdin>", line 28, in <module>
+OSError: [Errno 5] EIO
+
+>>> 
+SD Card:  PNY 32gb u1 a1 elite v10 micro sd hc
+Machine freq: 240000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+  0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 ef
+448: ff f0 bf ef ff f0 02 00 00 00 08 89 b0 30 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9
+0x5a 0xa9
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] [SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+0x5a 0xa9
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+00000000000000000000000000000000
+PIO1 GPIOBASE = 0
+PINCTRL: 0x14000000
+  in_base=0  out_base=0  set_base=0  sideset_base=0
+GPIO24-29 raw: 111111
+  GPIO24(CLK)=1  GPIO25(CMD)=1  GPIO26(D0)=1
+  GPIO27(D1)=1  GPIO28(D2)=1  GPIO29(D3)=1
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: com[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+00000000000000000000000000000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ER[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+Traceback (most recent call last):
+  File "<stdin>", line 74, in <module>
+OSError: [Errno 19] ENODEV
+
+>>> 
+SD Card:  PNY 32gb u1 a1 elite v10 micro sd hc
+Machine freq: 260000000
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+  0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 32: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 64: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 96: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+128: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+192: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+224: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+256: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+288: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+352: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+384: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+416: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 ef
+448: ff f0 bf ef ff f0 02 00 00 00 08 89 b0 30 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9
+0x5a 0xa9
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] [SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+0x5a 0xa9
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 1)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: computed=%d received=%d (1297674476, -1034915813)
+[SDIO ERR] SDIO checksum error in read (1, 1)
+readblocks: CRC mismatch sector=0 nonzero=16
+  first16: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+  last16:  00 00 00 00 00 00 00 00 00 00 00 00 00 05 5a a9 
+00000000000000000000000000000000
+PIO1 GPIOBASE = 0
+PINCTRL: 0x14000000
+  in_base=0  out_base=0  set_base=0  sideset_base=0
+GPIO24-29 raw: 111111
+  GPIO24(CLK)=1  GPIO25(CMD)=1  GPIO26(D0)=1
+  GPIO27(D1)=1  GPIO28(D2)=1  GPIO29(D3)=1
+[SDIO ERR] DBG rx_start state=%d clkgpio=%d (0, 0)
+[SDIO ERR] SDIO CRC lo: computed=%d received=%d (1737525496, -1751615233)
+[SDIO ERR] SDIO CRC hi: com[SDIO ERR] SDIO data rx timeout (1, 0)
+readblocks: rx_poll failed st=5
+Traceback (most recent call last):
+  File "<stdin>", line 72, in <module>
+OSError: [Errno 5] EIO
