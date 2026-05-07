@@ -2,10 +2,11 @@ from nt35510 import NT35510, cx_bright, color565, MyFrameBuffer
 import machine, random, time, os
 machine.freq(260_000_000)
 
-image_num = 2
+image_num = 0
 file = [f for f in os.listdir("/") if "sample" in f][image_num]
 width = int(file.split("_")[1][:3])
 height = int(file.split("_")[1][4:7])
+print(f"Displaying file: {file}, with w and h of {width} and {height} respectively.")
 
 @micropython.viper
 def color565_to_rgb(c: int):
@@ -31,10 +32,12 @@ def switch_bytes(buf: object):
     p = ptr8(buf)
     n = int(len(buf)) & ~1
     tmp: int = 0
-    for i in range(0, n, 2):
+    i: int = 0
+    while i < n:
         tmp = p[i]
         p[i] = p[i + 1]
         p[i + 1] = tmp
+        i += 2
 
     return buf
 
@@ -156,12 +159,10 @@ t0 = time.ticks_us()
 with open(file,"rb") as f:
     f.readinto(buf)
     t2 = time.ticks_us()
-    buf = switch_bytes(buf)
-    # buf[0] = color565(0,0,255)
-    # buf[2] = color565(0,0,255)
-    n.draw_buf(0, 0, width, height, buf)
+    n.draw_buf_be(0, 0, width, height, buf)  # swap+draw in one PSRAM pass; no switch_bytes needed
 t1 = time.ticks_us()
-print(f"{t1-t0:,} {t2-t0:,}")
+print(f"{t1-t0:,}:Total {t2-t0:,}:Read {t1-t2:,}:Draw")
+switch_bytes(buf) # for testing non mv versions of blur/dither
 
 @timer
 def blur2x2(buf, dest, w=width, h=height):

@@ -1,4 +1,4 @@
-from display_drivers.nt35510 import NT35510, color565, MyFrameBuffer, cx_bright
+from nt35510 import NT35510, color565, MyFrameBuffer, cx_bright
 from color_control import PALETTE_WHITE
 import framebuf, gc, micropython, os
 

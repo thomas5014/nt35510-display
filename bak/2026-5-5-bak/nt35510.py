@@ -1,33 +1,38 @@
 from machine import Pin, PWM # type: ignore
 import machine, micropython, framebuf, time
 from micropython import const
+machine.freq(200_000_000)  # 250MHz for faster GPIO toggling
 
 def color565(r,g,b):
     return ((r & 0xF8)<<8) | ((g & 0xFC)<<3) | (b>>3)
 
 @micropython.viper
-def cx_bright(color:int,brightness:int) -> int:
+def cx_bright(color:int, brightness:int) -> int:
     if brightness == 0:
         return 0
-    return ((color>>11)*brightness//100)<<11 | ((color & 2016 >>5)*brightness//100)<<5 | ((color & 31)*brightness//100)
-
+    r = ((color >> 11) & 0x1F) * brightness // 100
+    g = ((color >> 5)  & 0x3F) * brightness // 100
+    b = (color & 0x1F) * brightness // 100
+    return (r << 11) | (g << 5) | b
+    
 SIO_BASE   = 0xD0000000  # alias for SIO (faster to access, same hardware)
 GPIO_OUT   = SIO_BASE + 0x10
 GPIO_SET   = SIO_BASE + 0x1C
 DATA_MASK  = const(0xFFFF)  # GPIO0–15
 WR_MASK    = const(1 << 18)
+DC_MASK    = const(1 << 20)
+
+
 
 class MyFrameBuffer(framebuf.FrameBuffer):
     def __init__(self, width, height, buf=None):
-        self.buffer = buf if buf else bytearray(width * height * 2)
+        self.buffer = memoryview(buf) if buf else memoryview(bytearray(width * height * 2))
         self.width = width
         self.height = height
         super().__init__(self.buffer, self.width, self.height, framebuf.RGB565)
 
 class NT35510:
-    def __init__(self, wr=18, cs=19, dc=20, rst=21, bl=22, rd=40, width=400, height=800):
-        # Pre-grab data pins for speed
-        self._dpins = [Pin(i, Pin.OUT, value=0) for i in range(16)]
+    def __init__(self, wr=18, cs=19, dc=20, rst=21, bl=22, rd=40, width=480, height=800):
         self.wr  = Pin(wr, Pin.OUT, value=1)
         self.rd  = Pin(rd, Pin.OUT, value=1)
         self.cs  = Pin(cs, Pin.OUT, value=1)
@@ -39,22 +44,25 @@ class NT35510:
         self.height = height
 
         self.init_display()
+        self.MyFrameBuffer = MyFrameBuffer
 
     def init_display(self):
         # Just send sleep-out and fill small area red
         #_bl.off()
         self.bl.on()
         self.rd.high()
+        self.cs.low()
         self.hw_reset()
         self.init_extra()
         self._cmd(0x3a00); self._data(0x55)               # set pixel format
         self._cmd(0x1100); time.sleep_ms(120)        # exit sleep booster on
         self._cmd(0x2900)                            # display on
+        
 
     @micropython.viper
     def _bus_write16_fast(self, v:int, count:int):
         pout = ptr32(GPIO_OUT)
-        v:int = pout[0] & ~DATA_MASK | (v & DATA_MASK)
+        v:int = pout[0] & ~DATA_MASK | (v & DATA_MASK) | DC_MASK
 
         low: int = v & ~WR_MASK
         high: int = v | WR_MASK
@@ -103,14 +111,43 @@ class NT35510:
     @micropython.viper
     def _bus_write16(self, v:int):
         pout = ptr32(GPIO_OUT)
-        v:int = pout[0] & ~DATA_MASK | (v & DATA_MASK)
+        v:int = pout[0] & ~DATA_MASK | (v & DATA_MASK) | DC_MASK
 
         pout[0] = v & ~WR_MASK
         pout[0] = v | WR_MASK
+
+    @micropython.viper
+    def _cmd(self, v:int):
+        pout = ptr32(GPIO_OUT)
+        v:int = pout[0] & ~DC_MASK & ~DATA_MASK | (v & DATA_MASK)
+
+        pout[0] = v & ~WR_MASK
+        pout[0] = v | WR_MASK
+        
+    @micropython.viper
+    def _data(self, v:int):
+        pout = ptr32(GPIO_OUT)
+        v:int = pout[0] & ~DATA_MASK | (v & DATA_MASK) | DC_MASK
+
+        pout[0] = v & ~WR_MASK
+        pout[0] = v | WR_MASK
+
+    @micropython.viper
+    def _cmddata(self, c: int, d: int):
+        pout = ptr32(GPIO_OUT)
+        v:int = pout[0] & ~DC_MASK & ~DATA_MASK | (c & DATA_MASK)
+        pout[0] = v & ~WR_MASK
+        pout[0] = v | WR_MASK
+
+        v:int = pout[0] & ~DATA_MASK | (d & DATA_MASK) | DC_MASK
+        pout[0] = v & ~WR_MASK
+        pout[0] = v | WR_MASK
+
+        
     @micropython.viper
     def _bus_write16_buf(self, buf):
         pout = ptr32(GPIO_OUT)
-        base_low:int = pout[0] & ~DATA_MASK & ~WR_MASK      # clear values and WR
+        base_low:int = pout[0] & ~DATA_MASK & ~WR_MASK | DC_MASK     # clear values and WR
         i:int = 0
         buf_p = ptr16(buf)
         buf_len:int = int(len(buf)) // 2
@@ -121,75 +158,70 @@ class NT35510:
             pout[0] = low | WR_MASK
             i += 1
 
-    @micropython.viper
-    def _bus_write16_slow(self, v:int, count:int):
-        for i in range(16):
-            self._dpins[i].value((v >> i) & 1)
-
-        for _ in range(0, count):
-            self.wr.low()
-            self.wr.high()
-
-    def _cmd(self, c):
-        self.dc.low()
-        self.cs.low()
-        self._bus_write16(c)
-        self.cs.high()
-
-    def _data(self, c):
-        self.dc.high()
-        self.cs.low()
-        self._bus_write16(c)
-        self.cs.high()
-
     def hw_reset(self):
         self.rst.high(); time.sleep_ms(50)
         self.rst.low(); time.sleep_ms(50)
         self.rst.high(); time.sleep_ms(120)
 
-    def set_window(self, x0, y0, x1, y1):
-        _cmd = self._cmd
-        _data = self._data
-        _cmd(0x2A00); _data(x0 >> 8)      # setx start high-byte
-        _cmd(0x2A01); _data(x0 & 0xFF)      # setx start low-byte
-        _cmd(0x2A02); _data(x1 >> 8)      # setx end high-byte
-        _cmd(0x2A03); _data(x1 & 0xFF)     # setx end low-byte
-        _cmd(0x2B00); _data(y0 >> 8)      # sety start high-byte
-        _cmd(0x2B01); _data(y0 & 0xFF)      # sety start low-byte
-        _cmd(0x2B02); _data(y1 >> 8)      # sety end high-byte
-        _cmd(0x2B03); _data(y1 & 0xFF)     # sety end low-byte
-        _cmd(0x2C00)        # write ram
+    @micropython.viper
+    def set_window(self, x0: int, y0: int, x1: int, y1: int):
+        _cmddata = self._cmddata
+        _cmddata(0x2A00,x0 >> 8)      # setx start high-byte
+        _cmddata(0x2A01,x0 & 0xFF)      # setx start low-byte
+        _cmddata(0x2A02,x1 >> 8)      # setx end high-byte
+        _cmddata(0x2A03,x1 & 0xFF)     # setx end low-byte
+        _cmddata(0x2B00,y0 >> 8)      # sety start high-byte
+        _cmddata(0x2B01,y0 & 0xFF)      # sety start low-byte
+        _cmddata(0x2B02,y1 >> 8)      # sety end high-byte
+        _cmddata(0x2B03,y1 & 0xFF)     # sety end low-byte
+        self._cmd(0x2C00)        # write ram
+
 
     def fill_rect(self, x, y, width, height, color):
         self.set_window(x, y, x + width - 1, y + height - 1)
-
-        self.dc.high()
-        self.cs.low()
         self._bus_write16_fast(color, width*height)
-        self.cs.high()
 
     def fill(self,color):
-        self.fill_rect(0 , 0, 480, 800, color)
+        self.fill_rect(0, 0, self.width, self.height, color)
 
-    def draw_buf(self, x, y, width, height, buf):
+    @micropython.viper
+    def draw_buf(self, x: int, y: int, width: int, height: int, buf: object):
         self.set_window(x, y, x + width - 1, y + height - 1)
-        self.dc.high()
-        self.cs.low()
         self._bus_write16_buf(buf)
-        self.cs.high()
 
-
-    def draw_framebuf(self, x, y, fb):
+    @micropython.viper
+    def draw_framebuf(self, x: int, y: int, fb: object):
         # only works with MyFrameBuffer
         self.draw_buf(x, y, fb.width, fb.height, fb.buffer)
 
     @micropython.viper
     def pixel(self, x:int,y:int,color:int):
-        self.set_window(x,y,x,y)
-        self.dc.high()
-        self.cs.low()
+        self.set_window(x, y, x, y)
         self._bus_write16(color)
-        self.cs.high()
+
+    @micropython.viper
+    def hline(self, x:int,y:int,w:int,color:int):
+        self.set_window(x, y, x+w-1, y)
+        _bus_write16 = self._bus_write16
+        for i in range(w):
+            _bus_write16(color)
+
+    @micropython.viper
+    def vline(self, x:int,y:int,h:int,color:int):
+        self.set_window(x, y, x, y+h-1)
+        _bus_write16 = self._bus_write16
+        for i in range(h):
+            _bus_write16(color)
+
+    def fb_text(self, text, x=0, y=0, color=-1, bg=0):
+        str_length = max(8, len(text) * 8 + 8)
+        fb = self.MyFrameBuffer(str_length, 8)
+        if bg:
+            fb.fill(bg)
+        else:
+            fb.fill(0)
+        fb.text(text, 0, 0, color)
+        self.draw_framebuf(x, y, fb)
 
     def init_extra(self):
         _cmd = self._cmd
@@ -640,3 +672,20 @@ if __name__ == "__main__":
     t1 = time.ticks_ms()
     print("Time:",time.ticks_diff(t1,t0),"ms")
     print(f"Time per frame: {time.ticks_diff(t1,t0)/100} ms")
+    import sys
+    sys.exit(1)
+    # import sdio
+    # sd = sdio.SDCard()
+    # import os
+    # os.mount(sd, "/sd")
+    # novs = os.listdir("/sd")
+    # print(novs)
+    # name = "ZARQA_210_WN"
+    # with open(f"/sd/novels/{name}/Images/Cover_320-448.raw", "rb") as f:
+    #     buf = f.read()
+    #     d.draw_buf(100, 100, 320, 448, buf)
+    with open("/sd/berto_480-700.raw","rb") as f:
+        buf = f.read()
+        d.draw_buf(0, 0, 480, 700, buf)
+
+"""['100XMultiplier_System_My_Essence_is_Glitched_as_an_Ultimate_Cheat_51_WN', 'Shadow_Slave_2864_WN', 'Demonic_Pornstar_System_615_WN', 'A_Cold-Blooded_POV_63_WN', 'Slime_Evolution_42_WN', 'Accidentally_Reincarnated_in_Cultivation_World_200_WN', 'SSS_Awakening_Rebirth_of_the_Strongest_Vampire_God_714_WN', 'a_little_sisters_all_i_need_29', 'His_innocent_wife_is_a_dangerous_hacker_550_WN', 'An_Extras_Rise_in_a_Romance_Fantasy_Novel_47_WN', '100X_Returns_System_I_Dominate_the_Age_of_Gods_71_WN', 'Bandit_System_I_Just_Wanted_To_Go_Home_79_WN', 'Wastelands_Only_King_137_WN', 'BIPARTITE_33_WN', 'The_Lone_Healer_224_WN', 'Brand_New_Life_Online_Rise_Of_The_Goddess_Of_Harvest_1673_WN', 'The_Demon_King_Chases_His_Wife_11385', 'The_Evil_God_Summoned_by_the_Saintess_42_WN', 'Infinite_Mana_in_the_Apocalypse_4667_WN', 'Contracted_The_Beautiful_Triplets_And_I_Gained_The_10000x_Rebate_System_470_WN', 'Engagement_Canceled_I_Can_Extract_Prefixes_109_WN', 'Cultivation_Online_1997', 'Daily_Intelligence_System_Dont_Kill_Me_Honey_922_WN', 'Doomcycle_Ninety_Days_Before_the_End_10_WN', 'The_Nameless_Extra_I_Proofread_This_World_43_WN', 'Embers_Ad_Infinitum_953_WN', 'Strongest_Hammer_God_424_WN', 'Evolving_infinitely_from_ground_zero_577_WN', 'Online_Game_I_Have_A_100_Drop_Rate_85_WN', 'F-ranker_Sword_Saint_My_Soulbound_Sword_is_Secretly_SSS-tier_77_WN', 'Vampire_Summoners_Rebirth_Summoning_The_Vampire_Queen_At_The_Start_1537_WN', 'Follow_the_path_of_Dao_from_infancy_1498_WN', 'Game-like_Apocalypse_Rise_Of_The_Blood_Monarch_14_WN', 'I_Just_Wanted_to_Teach_Cultivation_But_Goddesses_Keep_Coming_213_WN', 'Hero_of_Darkness_1176_WN', 'Horror_Game_Developer_My_games_arent_that_scary_188_WN', 'I_AM_A_MAGE_BUT_WITH_MILF_SYSTEM_539_WN', 'Strongest_Mage_with_the_Lust_system_880_WN', 'Izuka_175_WN', 'Jobless_Transmigration_Im_the_only_one_who_loves_monsters_44_WN', 'I_Have_10000_SSS_Rank_Villains_In_My_System_Space_282_WN', 'Junior_sister_keep_forbear_for_a_while_I_almost_become_invincible_as_soon_74_WN', 'Kagami_Witch_of_the_Sealed_Pact_34_WN', 'Kill_the_Sun_972', 'Supreme_Magus (1)', 'Legacy_Of_Fire_Chronicles_Of_The_F-ranked_Anomaly_127_WN', 'Lord_of_Mysteries_2-_Circle_of_Inevitability_WN', 'Lord_of_Mysteries_1432_WN', 'Mafia_Boss_To_Another_World_26_WN', 'Mysteries_of_Immortal_Puppet_Master_1041_WN', 'The_Innkeeper_1910_WN', 'Naked_Sword_Art_445_WN', 'Napping_My_Way_to_Immortality_Until_I_Become_Strong_enough_13_WN', 'Ocean_Lords_Start_Harvesting_Double_from_Dice_Rolls_193_WN', 'Cultivating_life_in_Another_World_with_my_Op_Wife_17_WN', "Omniscient Reader's Viewpoint - Sing-shong (singsyong)", 'Origins_of_Blood_90_WN', 'Paragon_of_Sin_1945', 'Primordial_Awakening_I_Can_Evolve_My_Skills_Infinitely_228_WN', 'Qingge_121_WN', 'Reborn_as_the_bastard_son_of_a_Duke_41_WN', 'Resetting_Lady_282', 'Reverend_Insanity_2334_WN', 'Struggling_as_a_Villain_305_WN', 'The Noble Queen-A Shadow Slave Fanfic_514', 'The_Authors_POV_WN', 'The_Eminence_in_the_Shadow_202', 'Throne_of_Magical_Arcana_910_WN', 'Ultimate_Tycoon_Building_the_Richest_Empire_with_System_and_Heroines_85_WN', 'Unscientific_Beast_Taming_1962_WN', 'Vampires_Slice_Of_Life_1198_WN', 'Weakest_Beast_Tamer_Gets_All_SSS_Dragons_690_WN', 'While_My_Mage_Wife_Grinds_I_Power_Up_Idly_140_WN', 'X_Saga_Eng_Ver_60_WN', 'X-Code_312_WN', 'Yandere_Levelling_in_Her_World_62_WN', 'You_Have_Science_I_Have_Martial_Arts_169_WN', 'ZARQA_210_WN', 'Zombie_King_Babysits_the_Reborn_Empress_274_WN']"""

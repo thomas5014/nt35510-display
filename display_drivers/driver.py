@@ -61,8 +61,8 @@ class PINMAP:
 
 
 # ---------- PIO to output 16 bits and pulse WR ----------
-# We set 'out pins, 16' to present data, and use sideset to toggle WR low/high.
-# sideset[1] = WR, with initial high. Two NOPs create the WR falling/rising edges.
+# 'out pins, 16' presents data on D0..D15; 'set pins, 0/1' pulses WR low then high.
+# WR is a SET pin (set_base), not sideset.
 if PIO:
     # --- PIO: write 16 data bits, then pulse WR low->high using SET pin ---
     @asm_pio(
@@ -97,7 +97,6 @@ class NT35510:
         for i in range(16):
             Pin(self._data_base + i, Pin.OUT)
 
-        # WR pin is controlled by PIO sideset
         self._wr = Pin(pinmap.WR, Pin.OUT, value=1)
 
         # PIO state machine for 16-bit writes
@@ -106,7 +105,7 @@ class NT35510:
                 sm_id, pio_16wr,
                 freq=freq,
                 out_base=Pin(self._data_base),
-                sideset_base=self._wr,
+                set_base=self._wr,          # set_base, not sideset_base: program uses set(pins,0/1)
             )
             self.sm.active(1)
         else:

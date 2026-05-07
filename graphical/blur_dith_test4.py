@@ -1,4 +1,4 @@
-from nt35510 import NT35510, cx_bright, color565, MyFrameBuffer
+from nt35510_pio import NT35510, cx_bright, color565, MyFrameBuffer
 import machine, random, time, os
 machine.freq(260_000_000)
 
@@ -21,6 +21,7 @@ def color565_to_rgb(c: int):
     return r, g, b
 
 n = NT35510()
+# n = NT35510(pio_freq=260_000_000)
 temp = bytearray(520*1024*2)
 buf = bytearray(width*height*2)
 del temp
@@ -180,6 +181,29 @@ def dither_line(fb: object, x: int, y: int, w: int, dith_list: object):
         sx += 3
 
     n.draw_framebuf(x, y, fb)
+
+@micropython.viper                                                                                                                                                                                           
+def dither_line_pio(fb_buf: object, y: int, w: int, src_buf: object, dith_list: object):
+    pb = ptr8(fb_buf)       # fb's raw buffer, 3 rows × w pixels × 2 bytes                                                                                                                                   
+    i: int = 0                                                                                                                                                                                               
+    sx: int = 0                                                                                                                                                                                              
+    while sx < w - 2:                                                                                                                                                                                        
+        bri: int = int(average_points_3x3_luma(sx, y, w, src_buf))
+        bri = (bri * 10) >> 8                                                                                                                                                                                
+        dith_pix: int = int(dith_list[bri])
+                                                                                                                                                                                                            
+        # write 9 pixels directly — no method dispatch                                                                                                                                                       
+        r0: int = sx * 2
+        r1: int = (w + sx) * 2                                                                                                                                                                               
+        r2: int = (w * 2 + sx) * 2
+        c: int = 0                                                                                                                                                                                           
+        for bit in range(9):  # unroll manually if needed
+            c = -(( dith_pix >> bit) & 1)   # 0x0000 or 0xFFFF                                                                                                                                               
+            off: int = r0 + (bit % 3) * 2 if bit < 3 else (r1 + (bit%3)*2 if bit < 6 else r2 + (bit%3)*2)                                                                                                    
+            pb[off] = c                                                                                                                                                                                      
+            pb[off + 1] = c                                                                                                                                                                                  
+        sx += 3      
+    n.draw_framebuf(0, y, fb_buf)
 
 @timer
 def blur_3x3(x,y,w,h,buf,dest=n):

@@ -1,5 +1,6 @@
 import time, machine
 from micropython import const
+# import micropython 
 from nt35510 import MyFrameBuffer
 machine.freq(240_000_000)
 # >>> 1_000_000_000/240_000_000
@@ -11,29 +12,41 @@ def gcd(a: int, b: int) -> int:
         a, b = b, a % b
     return a
 
-buf = memoryview(bytearray(32))
-fb = MyFrameBuffer(4,4,buf)
+# test_file = open("sample5_480-800.raw", "rb").read()
+# buf = memoryview(bytearray(32))
+# fb = MyFrameBuffer(4,4,buf)
 a: int = 0 
 ONE = const(1)
 @micropython.viper
 def test(itter: int) -> int:
     global a
     i: int = 0
-    buf = memoryview(bytearray(32))
-    fb = MyFrameBuffer(4,4,buf)
-    # x: int = 0
-    buf: bytearray = bytearray(0)
-    c_ptr: ptr8 = ptr8("A")
+    #buf22 = memoryview(bytearray(32))
+    # t_p: ptr8 = ptr8(test_file)
+    # print(f"ptr8 of buf: {t_p:X}, ptr8 of buf[0]: {t_p[0]}")
+    # fb = MyFrameBuffer(4,4,buf)
+    x: int = 0
+    # buf: bytearray = bytearray(0)
+    # c_ptr: ptr8 = ptr8("A")
     t0: int = time.ticks_us()
     while i < itter:
+        # i: int = i + 0
         # x: int = 0
-        fb.pixel(0,0,0)
+        # fb.pixel(0,0,0)
+        # t_p[0]
         i += ONE
     t1: int = time.ticks_us()
     t: int = int(t1-t0)
     return t
 
+# print("with: 't_p: ptr8 = ptr8(buf)'")
+# raw = micropython.viper_code(test)                                                                                                                                                    
+# print(len(raw), 'bytes of machine code (ARM Thumb2)')
+# print(' '.join('%02x' % b for b in raw))
+# import sys
+# sys.exit(1)
 print("Starting")
+print(test)
 itter: int = 1_000_000
 length: int = test(itter)
 zero: int = 45836
@@ -61,3 +74,19 @@ print(f"Time for itterating {itter:,} times: {length:>9,} microseconds. Times pe
 # Time for itterating 1,000,000 times: 11,888,471microseconds. Times per us or MHz:        0.08, ns per itter: 11888.47.Freq 240 MHz. Baseline: 45,836 microseconds. gcd(10,10)
 # Time for itterating 1,000,000 times: 1,500,007 microseconds. Times per us or MHz:        0.67, ns per itter: 1500.01. Freq 240 MHz. Baseline: 45,836 microseconds. gcd(10,10) with viper
 # Time for itterating 1,000,000 times:     4,165 microseconds. Times per us or MHz:      240.10, ns per itter:    4.17. Freq 240 MHz. Baseline: 45,836 microseconds. x: int = 10 % 2
+# Time for itterating 1,000,000 times:     4,167 microseconds. Times per us or MHz:      239.98, ns per itter:    4.17, clock cycles per itter:    1.00. Freq 240 MHz. Baseline: 45,836 microseconds. x: int = 0 pre look x: int = 0 not big outside allocations\
+
+
+# >>> 
+# without: 't_p: ptr8 = ptr8(buf)'
+# 254 bytes of machine code (ARM Thumb2)
+# fe b5 9a b0 47 68 be 68 ff 68 7f 69 13 90 08 46 11 46 1d 46 00 29 40 f0 04 80 01 22 90 42 00 f0 07 80 40 f2 02 02 c0 f2 02 02 d7 f8 b0 30 98 47 28 68 02 21 fb 68 98 47 04 46 13 98 40 68 40 68 7b 69 98 47 14 90 00 28 00 f0 0e 80 00 a8 d7 f8 80 30 98 47 00 28 00 f0 07 80 14 98 7b 69 98 47 01 98 d7 f8 88 30 98 47 00 25 00 20 1b 90 b0 88 fb 69 98 47 15 aa b1 8c bb 6a 98 47 15 aa 00 20 00 21 3b 6f 98 47 1a 90 00 f0 06 b8 00 20 1b 90 01 22 29 46 89 18 0d 46 29 46 a1 42 b4 bf 01 20 00 20 00 28 f2 d1 b0 88 fb 69 98 47 15 aa b1 8c bb 6a 98 47 15 aa 00 20 00 21 3b 6f 98 47 19 90 19 98 16 90 1a 98 02 46 16 99 1c 20 bb 6c 98 47 02 21 fb 68 98 47 18 90 18 98 02 21 3b 69 98 47 12 90 00 f0 00 b8 14 98 00 28 00 f0 05 80 7b 69 98 47 d7 f8 84 30 98 47 12 98 1a b0 fe bd
+# Starting
+# Time for itterating 1,000,000 times:     8,340 microseconds. Times per us or MHz:      119.90, ns per itter:    8.34, clock cycles per itter:    2.00. Freq 240 MHz. Baseline: 45,836 microseconds.
+
+# >>> 
+# with: 't_p: ptr8 = ptr8(buf)'
+# 268 bytes of machine code (ARM Thumb2)
+# fe b5 9a b0 47 68 be 68 ff 68 7f 69 13 90 08 46 11 46 1d 46 00 29 40 f0 04 80 01 22 90 42 00 f0 07 80 40 f2 02 02 c0 f2 02 02 d7 f8 b0 30 98 47 28 68 02 21 fb 68 98 47 04 46 13 98 40 68 40 68 7b 69 98 47 14 90 00 28 00 f0 0e 80 00 a8 d7 f8 80 30 98 47 00 28 00 f0 07 80 14 98 7b 69 98 47 01 98 d7 f8 88 30 98 47 00 25 70 8e fb 69 98 47 05 21 fb 68 98 47 1c 90 00 20 1b 90 b0 88 fb 69 98 47 15 aa b1 8c bb 6a 98 47 15 aa 00 20 00 21 3b 6f 98 47 1a 90 00 f0 06 b8 00 20 1b 90 01 22 29 46 89 18 0d 46 29 46 a1 42 b4 bf 01 20 00 20 00 28 f2 d1 b0 88 fb 69 98 47 15 aa b1 8c bb 6a 98 47 15 aa 00 20 00 21 3b 6f 98 47 19 90 19 98 16 90 1a 98 02 46 16 99 1c 20 bb 6c 98 47 02 21 fb 68 98 47 18 90 18 98 02 21 3b 69 98 47 12 90 00 f0 00 b8 14 98 00 28 00 f0 05 80 7b 69 98 47 d7 f8 84 30 98 47 12 98 1a b0 fe bd
+# Starting
+# Time for itterating 1,000,000 times:     8,339 microseconds. Times per us or MHz:      119.92, ns per itter:    8.34, clock cycles per itter:    2.00. Freq 240 MHz. Baseline: 45,836 microseconds.

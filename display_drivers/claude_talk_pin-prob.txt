@@ -1,0 +1,197 @@
+Last login: Sat May  2 15:22:58 on ttys000
+(base) thomas@Thomass-MacBook-Pro ~ % cd micropython/ports/rp2 
+(base) thomas@Thomass-MacBook-Pro rp2 % claude
+▗ ▗   ▖ ▖  Claude Code v2.1.126                                                                                         
+           Sonnet 4.6 · Claude Pro                                                                                      
+  ▘▘ ▝▝    ~/micropython/ports/rp2                                                                                      
+                                                                                                                        
+❯ the build for the rp2350b plus w has a pin bug where the standard dma display driver i use doesn't work until i first 
+▗ ▗   ▖ ▖  Claude Code v2.1.126
+           Sonnet 4.6 · Claude Pro
+  ▘▘ ▝▝    ~/micropython/ports/rp2
+
+❯ the build for the rp2350b plus w has a pin bug where the standard dma display driver i use doesn't work until i first 
+   run the pio variant after power on. versions of the files are in the ~/nt35510 dir                                   
+
+⏺ Let me look at the files in ~/nt35510 to understand the display drivers involved.
+
+  Read 2 files, listed 2 directories (ctrl+o to expand)
+
+⏺ Let me read the full PIO driver and the board config to understand the GPIO function mux state.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Let me look at the board file and check the PIO driver more carefully, particularly around GPIO function setup.
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)     
+                                                                                                                
+⏺ Let me check main.c modifications and the board header, plus look at what MicroPython does with CYW43 GPIO
+  initialization on boot.
+                                                            
+⏺ Bash(git -C /Users/thomas/micropython diff HEAD main.c | head -100)
+  ⎿  fatal: ambiguous argument 'main.c': unknown revision or path not in the working tree.                              
+     Use '--' to separate paths from revisions, like this:                                                              
+     'git <command> [<revision>...] -- [<file>...]'                                                                     
+                                                                                                                        
+  Searched for 1 pattern, read 2 files (ctrl+o to expand)                                                               
+                                                                
+⏺ Let me check the frozen manifest and any boot files on the board.                                                     
+                                                                
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)                                                                
+                                                                                                                        
+⏺ Bash(sed -n '270,290p' /Users/thomas/micropython/ports/rp2/mphalport.c)                                               
+  ⎿      best_effort_wfe_or_timeout(delayed_by_ms(get_absolute_time(), timeout_ms));                                    
+     }                                                                                                                  
+     … +7 lines (ctrl+o to expand)                                                                                      
+                                                                                                                        
+  Searched for 1 pattern (ctrl+o to expand)                                                                             
+                                                                                                                        
+⏺ Let me read driver.py — that might be the actual "standard DMA driver" being referenced.                              
+                                                                                                                        
+  Read 1 file (ctrl+o to expand)                                                                                        
+                                                 
+⏺ Let me look at the actual MicroPython rp2 StateMachine source to understand how it handles set_base vs sideset_base.  
+                                                                                                                        
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)                                                               
+                                                                                                                        
+⏺ Let me look at the ASM_PIO_CONFIG_DEFAULT to understand the default base pin value.                                   
+                                                                                                                        
+  Searched for 1 pattern (ctrl+o to expand)                                                                             
+                                                                                                                        
+⏺ Let me look at the Pico SDK's gpio_set_function to check if it clears the RP2350 isolation bit — this is a critical   
+  RP2350-specific behavior.                                                                                             
+                                                                                                                        
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)                                                                
+                                                                                                                        
+⏺ Let me check if CYW43 auto-initializes at boot in main.c, and also look at what PSRAM init does to GPIOs.             
+                                                                                                                        
+  Searched for 1 pattern (ctrl+o to expand)                                                                             
+                                                                                                                        
+⏺ Let me look at what rp2_psram.c actually does on the RP2350B.                                                         
+                                                                                                                        
+  Searched for 3 patterns, read 2 files (ctrl+o to expand)                                                              
+                                                                                                                        
+⏺ Let me check the actual RP2350 SIO register map to verify the GPIO_OUT address.                                       
+                                                                                                                        
+  Searched for 3 patterns (ctrl+o to expand)                                                                            
+                                                                                                                        
+⏺ Let me check if HAS_PADS_BANK0_ISOLATION is defined for this RP2350 build.                                            
+                                                                                                                        
+  Searched for 1 pattern (ctrl+o to expand)                                                                             
+                                                                                                                        
+⏺ Let me quickly look at the test files to understand which driver the user considers "standard DMA."                   
+                                                                                                                        
+  Read 1 file (ctrl+o to expand)                                                                                      
+                                                                                                                        
+⏺ Now I have a complete picture. Let me summarize the findings and fixes.                                               
+                                                                                                                        
+  The core issue is in driver.py: sideset_base=self._wr is the wrong parameter — the PIO program uses set(pins, 0/1)    
+  instructions for WR control, which requires set_base, not sideset_base. With sideset_base provided but no sideset_init
+   in the program, MicroPython's asm_pio_get_pins() gets count=0 for the sideset config → pinmask=0 → pio_gpio_init() is
+   never called for GPIO18, and sm_config_set_set_pins() is never called because set_config.base == -1. Result:         
+  SET_COUNT=0 in the SM's PINCTRL, so set(pins, 0/1) is a no-op and WR never pulses. The display receives data on       
+  GPIO0-15 but can't latch any of it.                                                                                   
+                                                                                                                        
+  On fresh power-on this silently fails. After nt35510_pio.py runs (which correctly initializes the display with its    
+  properly-written sideset-based SM), the display is in a known initialized state — which is why the behavior appears   
+  different.                                                                                                            
+                                                                                                                        
+  Here's the fix for driver.py:                                                                                         
+                                                                                                                        
+  Read 1 file (ctrl+o to expand)                                                                                        
+                                        
+⏺ Update(~/nt35510/display_drivers/driver.py)
+  ⎿  Added 1 line, removed 2 lines                                                                                      
+       97          for i in range(16):                                                                                  
+       98              Pin(self._data_base + i, Pin.OUT)                                                                
+       99                                                                                                               
+      100 -        # WR pin is controlled by PIO sideset                                                                
+      100          self._wr = Pin(pinmap.WR, Pin.OUT, value=1)                                                          
+      101                                                                                                               
+      102          # PIO state machine for 16-bit writes                                                                
+     ...                                                                                                                
+      105                  sm_id, pio_16wr,                                                                             
+      106                  freq=freq,                                                                                   
+      107                  out_base=Pin(self._data_base),                                                               
+      109 -                sideset_base=self._wr,                                                                       
+      108 +                set_base=self._wr,          # set_base, not sideset_base: program uses set(pins,0/1)         
+      109              )                                                                                                
+      110              self.sm.active(1)                                                                                
+      111          else:                                                                                                
+                                                                                                                        
+⏺ Also fix the comment at the top of the PIO program which says "sideset pin drives WR" — it's actually a set pin:      
+                                                                                                                        
+  Read 1 file (ctrl+o to expand)                                                                                        
+                                                                                                                        
+⏺ Update(~/nt35510/display_drivers/driver.py)                                                                           
+  ⎿  Added 2 lines, removed 2 lines                                                                                     
+      61                                                                                                                
+      62                                                                                                                
+      63  # ---------- PIO to output 16 bits and pulse WR ----------                                                    
+      64 -# We set 'out pins, 16' to present data, and use sideset to toggle WR low/high.                               
+      65 -# sideset[1] = WR, with initial high. Two NOPs create the WR falling/rising edges.                            
+      64 +# 'out pins, 16' presents data on D0..D15; 'set pins, 0/1' pulses WR low then high.                         
+      65 +# WR is a SET pin (set_base), not sideset.                                                                    
+      66  if PIO:                                                                                                     
+      67      # --- PIO: write 16 data bits, then pulse WR low->high using SET pin ---
+      68      @asm_pio(
+
+⏺ Now let me also look at the second issue — nt35510.py using rd=26 (SDIO D0). That won't cause the display to fail, but
+   it's a bad default that will break SDIO if both are used. Let me check the other concern: whether there's actually
+  something in nt35510.py that could explain the fresh-power-on failure.
+                                                                                                                        
+  Searched for 1 pattern (ctrl+o to expand)  
+                                                                                                                        
+⏺ The clear fix is in driver.py. The rd=26 in nt35510.py also deserves changing — GPIO26 is the SDIO D0 pin per       
+  sdio_rp2350_config.h, so it should match the other drivers' default of GPIO40:                                        
+  
+⏺ Update(~/nt35510/display_drivers/nt35510.py)                                                                          
+  ⎿  Added 1 line, removed 1 line                                            
+      25          super().__init__(self.buffer, self.width, self.height, framebuf.RGB565)                               
+      26                                                                                                                
+      27  class NT35510:
+      28 -    def __init__(self, wr=18, cs=19, dc=20, rst=21, bl=22, rd=26, width=400, height=800):                     
+      28 +    def __init__(self, wr=18, cs=19, dc=20, rst=21, bl=22, rd=40, width=400, height=800):              
+      29          # Pre-grab data pins for speed                                                                        
+      30          self._dpins = [Pin(i, Pin.OUT, value=0) for i in range(16)]
+      31          self.wr  = Pin(wr, Pin.OUT, value=1)
+
+⏺ Now let me verify the driver.py fix looks correct end-to-end:
+      26  
+      27  class NT35510:
+      28 -    def __init__(self, wr=18, cs=19, dc=20, rst=21, bl=22, rd=26, width=400, height=800):                                                     
+      28 +    def __init__(self, wr=18, cs=19, dc=20, rst=21, bl=22, rd=40, width=400, height=800):                                                     
+      29          # Pre-grab data pins for speed
+      30          self._dpins = [Pin(i, Pin.OUT, value=0) for i in range(16)]
+      31          self.wr  = Pin(wr, Pin.OUT, value=1)
+
+⏺ Now let me verify the driver.py fix looks correct end-to-end:
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Good. Here's a summary of what was found and fixed:
+
+  ---
+  Root cause in driver.py: The PIO program pio_16wr uses set(pins, 0/1) instructions to pulse WR, which require set_base to be configured. The StateMachine()
+  was passed sideset_base=self._wr instead. Because the program has no sideset_init, MicroPython's asm_pio_get_pins() computed count=0 for the sideset config,
+  so pio_gpio_init() was never called for GPIO18 and SET_COUNT stayed 0 in the SM's PINCTRL — making every set(pins, ...) a no-op. WR never pulsed, nothing was
+   ever latched by the display.
+
+  Fix: sideset_base=self._wr → set_base=self._wr in driver.py's StateMachine() call.
+
+  Additional change in nt35510.py: Default rd=26 → rd=40. GPIO26 is the SDIO D0 pin (sdio_rp2350_config.h: D0=26), so using it as RD would silently break SDIO
+  if both were active. GPIO40 matches the PIO driver's default and avoids the conflict.
+
+  The "works after PIO first" behavior was explained by this same bug: nt35510_pio.py properly initializes the display (its sideset-based SM is correctly
+  written), and after that the display was already in a live state that masked driver.py's failure to re-initialize it.
+
+✻ Worked for 36m 24s
+
+※ recap: Fixed a PIO config bug in driver.py where sideset_base was passed instead of set_base, preventing WR from ever pulsing. Also changed nt35510.py's rd
+  default from GPIO26 to GPIO40 to avoid SDIO conflict. Ready to test on hardware. (disable recaps in /config)
+
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+❯  
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⏵⏵ accept edits on (shift+tab to cycle)
+
