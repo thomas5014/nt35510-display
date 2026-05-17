@@ -15,11 +15,11 @@ def gcd(a: int, b: int) -> int:
 # test_file = open("sample5_480-800.raw", "rb").read()
 # buf = memoryview(bytearray(32))
 # fb = MyFrameBuffer(4,4,buf)
-a: int = 0 
+# a: int = 0 
 ONE = const(1)
 @micropython.viper
 def test(itter: int) -> int:
-    global a
+    # global a
     i: int = 0
     #buf22 = memoryview(bytearray(32))
     # t_p: ptr8 = ptr8(test_file)
@@ -31,7 +31,8 @@ def test(itter: int) -> int:
     t0: int = time.ticks_us()
     while i < itter:
         # i: int = i + 0
-        # x: int = 0
+        x: int = 7
+        x: int = 0
         # fb.pixel(0,0,0)
         # t_p[0]
         i += ONE

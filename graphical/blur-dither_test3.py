@@ -229,8 +229,8 @@ def test_avg_565(buf, w=80, h=height):
 # n.fill(0)
 # blur2x2(buf,n)
 print(buf[:16])
-# dith2x2(buf)
-dith2x2_lbl(buf)
+dith2x2(buf)
+# dith2x2_lbl(buf)
 
 # blur2x2
 # function: blur2x2 completed in 24,539 ms

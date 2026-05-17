@@ -1,4 +1,3 @@
-from nt35510 import NT35510, cx_bright, color565, MyFrameBuffer
 import machine, random, time, os
 machine.freq(260_000_000)
 
@@ -7,6 +6,10 @@ file = [f for f in os.listdir("/") if "sample" in f][image_num]
 width = int(file.split("_")[1][:3])
 height = int(file.split("_")[1][4:7])
 print(f"Displaying file: {file}, with w and h of {width} and {height} respectively.")
+
+CHUNK_ROWS = 200  # 192 KB each — both fit in SRAM; 400 rows (375 KB) would overflow
+buf_A = bytearray(width * CHUNK_ROWS * 2)
+buf_B = bytearray(width * CHUNK_ROWS * 2)
 
 @micropython.viper
 def switch_bytes(buf: object):
@@ -22,20 +25,21 @@ def switch_bytes(buf: object):
 
     return buf
 
-import uctypes
-
 def buf_location(b):
     addr = uctypes.addressof(b)
     return f"{'SRAM' if addr >= 0x20000000 else 'PSRAM'} @ {hex(addr)} ({len(b)//1024}KB)"
 
+import uctypes, gc, micropython
+from nt35510 import NT35510, cx_bright, color565, MyFrameBuffer
+
 n = NT35510()
-CHUNK_ROWS = 200  # 192KB — confirmed to fit in SRAM; 400 rows (375KB) overflows to PSRAM
-frac_buf = bytearray(width * CHUNK_ROWS * 2)
-print("frac_buf:", buf_location(frac_buf))
-temp = bytearray(520*1024*2)
-buf = bytearray(width*height*2)               # PSRAM (for other tests)
-del temp
-print("buf:     ", buf_location(buf))
+# gc.collect()
+# micropython.mem_info()  # show free/used memory before allocating buf_B
+frac_buf = buf_A  # alias so draw_file_chunked / draw_file_dma_chunked still work
+print("buf_A:", buf_location(buf_A))
+print("buf_B:", buf_location(buf_B))
+buf = bytearray(width*height*2)               # 750 KB — too big for remaining SRAM → PSRAM
+print("buf:  ", buf_location(buf))
 
 def draw_file_chunked(filename, x=0, y=0, w=width, h=height):
     # Reads flash → SRAM chunk → draw from SRAM.  No PSRAM in the hot path.
@@ -149,5 +153,111 @@ n.fill(0)
 t0 = time.ticks_us()
 draw_file_dma_chunked(file)
 t1 = time.ticks_us()
-print(f"{t1-t0:,} us DMA+PIO (flash->SRAM->PIO0/SM1)")
+print(f"{t1-t0:,} us DMA+PIO single-buf")
 
+# ── Double-buffered DMA: overlap flash read with DMA draw ──────────────────
+# While DMA drains buf_A → display, CPU fills buf_B from flash, then swap.
+# Total ≈ N_chunks × max(read/chunk, draw/chunk) + last_draw
+#       ≈ 4 × 10.2 ms + 4.9 ms ≈ 45.7 ms  (vs 62 ms single-buf)
+# dma_idle shows time spent waiting for DMA after each read finishes.
+# For all but the last chunk this will be ~0 (read is the bottleneck).
+
+def draw_file_dma_double(filename, x=0, y=0, w=width, h=height):
+    row_bytes = w * 2
+    mv_a = memoryview(buf_A)
+    mv_b = memoryview(buf_B)
+    read_us = 0
+    idle_us = 0
+
+    n.set_window(x, y, x + w - 1, y + h - 1)
+    n.cs(0)
+    n.dc(1)
+    sm1.active(1)
+
+    with open(filename, "rb") as f:
+        # Prime: read the very first chunk so DMA has something to start on
+        rows = min(CHUNK_ROWS, h)
+        dma_chunk = mv_a[:rows * row_bytes]
+        t = time.ticks_us()
+        f.readinto(dma_chunk)
+        read_us += time.ticks_diff(time.ticks_us(), t)
+        dma_rows = rows
+        row = rows
+        use_a = True   # which buffer DMA will consume this iteration
+
+        while True:
+            # Kick off DMA on whichever buffer was just filled
+            _dma.config(read=dma_chunk, write=PIO0_TXF1, count=dma_rows * w,
+                        ctrl=_dma_ctrl, trigger=True)
+
+            # While DMA runs, fill the idle buffer with the next chunk
+            if row < h:
+                rows = min(CHUNK_ROWS, h - row)
+                next_mv = mv_b if use_a else mv_a
+                next_chunk = next_mv[:rows * row_bytes]
+                t = time.ticks_us()
+                f.readinto(next_chunk)        # overlaps with DMA
+                read_us += time.ticks_diff(time.ticks_us(), t)
+                row += rows
+            else:
+                next_chunk = None
+
+            # Wait for DMA to finish (usually already done since read > draw)
+            t = time.ticks_us()
+            while _dma.active():
+                pass
+            idle_us += time.ticks_diff(time.ticks_us(), t)
+
+            if next_chunk is None:
+                break
+
+            dma_chunk = next_chunk
+            dma_rows = rows
+            use_a = not use_a
+
+    sm1.active(0)
+    n.cs(1)
+    chunks = h // CHUNK_ROWS + (1 if h % CHUNK_ROWS else 0)
+    print(f"  read:{read_us:,} dma_idle:{idle_us:,} ({chunks} chunks)")
+
+n.fill(0)
+t0 = time.ticks_us()
+draw_file_dma_double(file)
+t1 = time.ticks_us()
+print(f"{t1-t0:,} us DMA+PIO double-buf")
+
+# ── DMA directly from PSRAM ────────────────────────────────────────────────
+# buf is already in PSRAM (0x11xxxxxx). DMA reads through XIP/QMI (QPI at
+# 130 MHz). One set_window + one DMA transfer — no chunking.
+# Timed twice: cold cache first, then warm cache (steady-state per-frame cost
+# when the same image is drawn repeatedly from PSRAM).
+
+def draw_psram_dma():
+    n.set_window(0, 0, width - 1, height - 1)
+    n.cs(0)
+    n.dc(1)
+    sm1.active(1)
+    _dma.config(read=buf, write=PIO0_TXF1, count=width * height,
+                ctrl=_dma_ctrl, trigger=True)
+    while _dma.active():
+        pass
+    sm1.active(0)
+    n.cs(1)
+
+t0 = time.ticks_us()
+with open(file, "rb") as f:
+    f.readinto(buf)
+t_load = time.ticks_diff(time.ticks_us(), t0)
+print(f"load→PSRAM: {t_load:,} us")
+
+n.fill(0)
+t0 = time.ticks_us()
+draw_psram_dma()
+t1 = time.ticks_us()
+print(f"{t1-t0:,} us DMA from PSRAM (cold cache)")
+
+n.fill(0)
+t0 = time.ticks_us()
+draw_psram_dma()
+t1 = time.ticks_us()
+print(f"{t1-t0:,} us DMA from PSRAM (warm cache)")

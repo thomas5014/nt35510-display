@@ -1,7 +1,9 @@
 from machine import Pin, PWM # type: ignore
 import machine, micropython, framebuf, time
 from micropython import const
-machine.freq(260_000_000)  # 250MHz for faster GPIO toggling
+CLOCK = const(260_000_000)
+machine.freq(CLOCK)  # 250MHz for faster GPIO toggling
+
 
 @micropython.viper
 def color565(r:int,g:int,b:int) -> int:
@@ -23,7 +25,93 @@ DATA_MASK  = const(0xFFFF)  # GPIO0–15
 WR_MASK    = const(1 << 18)
 DC_MASK    = const(1 << 20)
 
+@micropython.asm_thumb
+def _strobe_bulk(r0, r1, r2, r3):
+    # r0=addr, r1=low, r2=high, r3=count//16
+    label(LOOP)
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    sub(r3, 1)
+    bne(LOOP)
 
+@micropython.asm_thumb
+def _strobe_rem(r0, r1, r2, r3):
+    # r0=addr, r1=low, r2=high, r3=remainder
+    label(LOOP)
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    sub(r3, 1)
+    bne(LOOP)
+
+@micropython.asm_thumb
+def _strobe_n(r0, r1, r2, r3):
+    # r0=addr, r1=low, r2=high, r3=count
+    label(LOOP)
+    str(r1, [r0, 0])
+    str(r2, [r0, 0])
+    sub(r3, 1)
+    bne(LOOP)
+
+from rp2 import PIO, StateMachine, asm_pio, DMA
+
+PIO0_TXF1 = 0x50200014  # PIO0 SM1 TX FIFO
+SM1_FREQ   = 60_000_000  # 60 MHz → 16.7 ns/instruction
+
+@asm_pio(
+    out_init=(PIO.OUT_HIGH,)*16,
+    out_shiftdir=PIO.SHIFT_RIGHT,
+    autopull=True, pull_thresh=16,
+    sideset_init=PIO.OUT_HIGH,   # WR starts HIGH
+)
+
+def _pio_16wr_dma():
+    out(pins, 16).side(1)        # pixel on D0-D15, WR=1 (1-cycle setup time)
+    nop()        .side(0)        # WR=0 (write strobe low)
+    nop()        .side(1)        # WR=1 (write complete)
+
+sm1 = StateMachine(1, _pio_16wr_dma, freq=SM1_FREQ,
+                   out_base=machine.Pin(0), sideset_base=machine.Pin(18))
+
+_dma = DMA()
+_dma_ctrl = _dma.pack_ctrl(
+    size=1,           # halfword — each transfer moves one 16-bit pixel
+    inc_read=True,
+    inc_write=False,  # always target PIO TX FIFO (fixed address)
+    treq_sel=1,       # DREQ_PIO0_TX1
+    bswap=True,       # [hi,lo] bytes in buffer → hi<<8|lo in FIFO
+    irq_quiet=True,
+    enable=True,
+)
 
 class MyFrameBuffer(framebuf.FrameBuffer):
     def __init__(self, width, height, buf=None):
@@ -61,57 +149,26 @@ class NT35510:
         self._cmd(0x3a00); self._data(0x55)               # set pixel format
         self._cmd(0x1100); time.sleep_ms(120)        # exit sleep booster on
         self._cmd(0x2900)                            # display on
-        
 
     @micropython.viper
-    def _bus_write16_fast(self, v:int, count:int):
+    def _bus_write16_too_fast(self, v: int, count: int):
         pout = ptr32(GPIO_OUT)
-        v:int = pout[0] & ~DATA_MASK | (v & DATA_MASK) | DC_MASK
+        v = pout[0] & ~DATA_MASK | (v & DATA_MASK) | DC_MASK
+        low:int  = v & ~WR_MASK
+        high:int = v | WR_MASK
+        bulk:int = count >> 4
+        rem:int  = count & 15
+        if bulk:
+            _strobe_bulk(GPIO_OUT, low, high, bulk)
+        if rem:
+            _strobe_rem(GPIO_OUT, low, high, rem)
 
-        low: int = v & ~WR_MASK
-        high: int = v | WR_MASK
-        i: int = 0
-        fcount:int = count // 16 * 16
-        while i < fcount:
-            pout[0] = low
-            pout[0] = high
-            pout[0] = low
-            pout[0] = high
-            pout[0] = low
-            pout[0] = high
-            pout[0] = low
-            pout[0] = high
-            pout[0] = low
-            pout[0] = high
-            pout[0] = low
-            pout[0] = high
-            pout[0] = low
-            pout[0] = high
-            pout[0] = low
-            pout[0] = high
-            pout[0] = low
-            pout[0] = high
-            pout[0] = low
-            pout[0] = high
-            pout[0] = low
-            pout[0] = high
-            pout[0] = low
-            pout[0] = high
-            pout[0] = low
-            pout[0] = high
-            pout[0] = low
-            pout[0] = high
-            pout[0] = low
-            pout[0] = high
-            pout[0] = low
-            pout[0] = high
-            i += 16
-
-        while i < count:  # remainer
-            pout[0] = low
-            pout[0] = high
-            i += 1
-
+    @micropython.viper
+    def _bus_write16_fast(self, v: int, count: int):
+        pout = ptr32(GPIO_OUT)
+        v = pout[0] & ~DATA_MASK | (v & DATA_MASK) | DC_MASK
+        _strobe_n(GPIO_OUT, v & ~WR_MASK, v | WR_MASK, count)
+        
     @micropython.viper
     def _bus_write16(self, v:int):
         pout = ptr32(GPIO_OUT)
@@ -162,6 +219,14 @@ class NT35510:
             pout[0] = low | WR_MASK
             i += 1
 
+    def _bus_write16_buf_dmapio(self,buf):
+        sm1.active(1)
+        _dma.config(read=buf, write=PIO0_TXF1, count=width * height,
+                    ctrl=_dma_ctrl, trigger=True)
+        while _dma.active():
+            pass
+        sm1.active(0)
+
     @micropython.viper
     def _bus_write16_buf_be(self, buf):
         # Read 4 bytes (2 big-endian pixels) per ptr32 load — halves SRAM transactions vs ptr8×2.
@@ -192,23 +257,71 @@ class NT35510:
 
     @micropython.viper
     def set_window(self, x0: int, y0: int, x1: int, y1: int):
-        _cmddata = self._cmddata
-        _cmddata(0x2A00,x0 >> 8)      # setx start high-byte
-        _cmddata(0x2A01,x0 & 0xFF)      # setx start low-byte
-        _cmddata(0x2A02,x1 >> 8)      # setx end high-byte
-        _cmddata(0x2A03,x1 & 0xFF)     # setx end low-byte
-        _cmddata(0x2B00,y0 >> 8)      # sety start high-byte
-        _cmddata(0x2B01,y0 & 0xFF)      # sety start low-byte
-        _cmddata(0x2B02,y1 >> 8)      # sety end high-byte
-        _cmddata(0x2B03,y1 & 0xFF)     # sety end low-byte
-        self._cmd(0x2C00)        # write ram
+        pout = ptr32(GPIO_OUT)
+        g:int  = pout[0]
+        cb:int = g & ~DC_MASK & ~DATA_MASK
+        db:int = g & ~DATA_MASK | DC_MASK
+        wr:int = WR_MASK
+        v:int  = 0
 
+        v = cb | 0x2A00
+        pout[0] = v & ~wr;  pout[0] = v | wr  # again no semicolons, just showing pairs
+        v = db | (x0 >> 8)
+        pout[0] = v & ~wr
+        pout[0] = v | wr
+        v = cb | 0x2A01
+        pout[0] = v & ~wr
+        pout[0] = v | wr
+        v = db | (x0 & 0xFF)
+        pout[0] = v & ~wr
+        pout[0] = v | wr
+        v = cb | 0x2A02
+        pout[0] = v & ~wr
+        pout[0] = v | wr
+        v = db | (x1 >> 8)
+        pout[0] = v & ~wr
+        pout[0] = v | wr
+        v = cb | 0x2A03
+        pout[0] = v & ~wr
+        pout[0] = v | wr
+        v = db | (x1 & 0xFF)
+        pout[0] = v & ~wr
+        pout[0] = v | wr
+        v = cb | 0x2B00
+        pout[0] = v & ~wr
+        pout[0] = v | wr
+        v = db | (y0 >> 8)
+        pout[0] = v & ~wr
+        pout[0] = v | wr
+        v = cb | 0x2B01
+        pout[0] = v & ~wr
+        pout[0] = v | wr
+        v = db | (y0 & 0xFF)
+        pout[0] = v & ~wr
+        pout[0] = v | wr
+        v = cb | 0x2B02
+        pout[0] = v & ~wr
+        pout[0] = v | wr
+        v = db | (y1 >> 8)
+        pout[0] = v & ~wr
+        pout[0] = v | wr
+        v = cb | 0x2B03
+        pout[0] = v & ~wr
+        pout[0] = v | wr
+        v = db | (y1 & 0xFF)
+        pout[0] = v & ~wr
+        pout[0] = v | wr
+        v = cb | 0x2C00
+        pout[0] = v & ~wr
+        pout[0] = v | wr
 
-    def fill_rect(self, x, y, width, height, color):
+    @micropython.viper
+    def fill_rect(self, x: int, y: int, width: int, height: int, color: int):
         self.set_window(x, y, x + width - 1, y + height - 1)
         self._bus_write16_fast(color, width*height)
 
-    def fill(self,color):
+    @micropython.viper
+    def fill(self,color: int):
         self.fill_rect(0, 0, self.width, self.height, color)
 
     @micropython.viper
@@ -691,14 +804,18 @@ class NT35510:
         
 if __name__ == "__main__":
     d = NT35510()
+    print(f"NT35510 initialize, Display: {d.width}X{d.height}")
+    print(f"Clock freq: {CLOCK:,} hz")
     sl = time.sleep
     d.fill(0xF800)  # red
+    print("first color")
     sl(1)
     d.fill(0x07E0)  # green
     sl(1)
     d.fill(0x001F)  # blue
     sl(1)
-    c = color565(50,100,150)
+    c = color565(150,200,150)
+    print("timing start")
     t0 = time.ticks_ms()
     for i in range(100):
         d.fill(cx_bright(c,i))

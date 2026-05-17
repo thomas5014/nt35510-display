@@ -26,6 +26,7 @@ class Font:
         self.char_width = int(width)
         self.char_height = int(height)
         row_size = (self.char_width + 3) // 4
+        self.row_size = row_size
         self.bytes_per_char = row_size * self.char_height
         num_chars = 127-32
         data_len = num_chars + num_chars * self.bytes_per_char
@@ -62,8 +63,10 @@ class Font:
         self._line_w  = 0
         self.bg = color565(*BG)
         self.pal_default = PALETTE_WHITE
+        self._pal_cache_key = None
+        self._pal_cache_raw = None
         #print("Font", name, self.char_width, self.char_height, data_len, len(self.data))
-
+    
     def _ensure_line_fb(self, FBClass, w):
         # allocate only when we need a bigger buffer than before
         if self._line_fb is None or w > self._line_w:
@@ -123,33 +126,13 @@ class Font:
         h: int = int(self.char_height)
         return x0 + x, y0 + h
     
-    @micropython.viper
-    def draw_text_bytes(self, s: object, FBClass: object, x0: int, y0: int, key: int, palette: object) -> int:
-        # s must be bytes
-        n: int = int(len(s))
-        sp = ptr8(s)
-
-        w: int = int(min(self.get_width(s),480-x0))
-        self._ensure_line_fb(FBClass, w)
-        fb = self._line_fb
-        fb.fill(self.bg)   # precomputed int, see below
-
-        widths = ptr8(self.widths)
-        pal = palette if palette else self.pal_default
-
-        x: int = 0
-        for i in range(n):
-            v: int = int(sp[i])
-            if v < 32 or v > 126:
-                v = 32
-            v -= 32
-            fb.blit(self._glyph_fb[v], x, 0, key, pal)
-            x += int(widths[v])
-            if x >= w:
-                break
-
-        nt.draw_framebuf(x0, y0, fb)
-        return x
+    def draw_text_bytes(self, s, FBClass, x0, y0, key=0, palette=None):
+        # non-viper wrapper: _ensure_line_fb stays in Python (no viper→Python roundtrip),
+        # no get_width pre-pass — _draw_bytes_range stops at max_w naturally.
+        max_w = 480 - x0
+        self._ensure_line_fb(FBClass, max_w)
+        return self._draw_bytes_range(s, 0, len(s), FBClass, x0, y0,
+                                      key, palette, max_w)
     
     def wrap_text_fast(self, text, fb, ix, iy, width, force_cut=False, lim=(0,480), key=0, palette=None):
         if not text:
@@ -318,7 +301,7 @@ class Font:
 
                     if cut_w + cw > width_px:
                         if (y > (lim0 - ch_h)) and (y < lim1):
-                            self.draw_text_bytes(b[cut_start:j], FBClass, ix, y, key, palette, width_px)
+                            self._draw_bytes_range(b, cut_start, j, FBClass, ix, y, key, palette, width_px)
                             end_y = y + ch_h
                         elif y > lim1:
                             in_bounds = 0
@@ -335,7 +318,7 @@ class Font:
 
                 if cut_start < we:
                     if (y > (lim0 - ch_h)) and (y < lim1):
-                        self.draw_text_bytes(b[cut_start:we], FBClass, ix, y, key, palette, width_px)
+                        self._draw_bytes_range(b, cut_start, we, FBClass, ix, y, key, palette, width_px)
                         end_y = y + ch_h
                     elif y > lim1:
                         in_bounds = 0
@@ -409,34 +392,72 @@ class Font:
             tx_lines.append(cur_line)
         return lines_nums, tx_lines
     
-    @micropython.viper
-    def _draw_bytes_range(self, b: object, start: int, end: int,
-                        FBClass: object, x0: int, y0: int,
-                        key: int, palette: object, max_w: int) -> int:
-        bp = ptr8(b)
-        widths = ptr8(self.widths)
-
-        fb = self._line_fb
-        # assume python wrapper already ensured _line_fb exists at >= max_w
-
-        fb.fill(int(self.bg))
+    def _draw_bytes_range(self, b, start, end, FBClass, x0, y0, key, palette, max_w):
         pal = palette if palette else self.pal_default
+        if pal is not self._pal_cache_key:
+            raw = bytearray(8)
+            for i in range(4):
+                c = pal.pixel(i, 0)
+                raw[i * 2]     = c & 0xFF
+                raw[i * 2 + 1] = (c >> 8) & 0xFF
+            self._pal_cache_key = pal
+            self._pal_cache_raw = raw
+        fb = self._line_fb
+        fb.fill(int(self.bg))
+        x = self._blit_chars(b, start, end,
+                             fb.buffer, int(fb.width),
+                             self.widths, self.data,
+                             self.row_size, int(self.char_height),
+                             self._pal_cache_raw, key, max_w)
+        nt.draw_framebuf(x0, y0, fb)
+        return x
 
-        x: int = 0
+    @micropython.viper
+    def _blit_chars(self, b: object, start: int, end: int,
+                    dest: object, dest_w: int,
+                    widths_buf: object, glyph_data: object,
+                    row_size: int, char_h: int,
+                    pal_buf: object, key: int, max_w: int) -> int:
+        bp    = ptr8(b)
+        widths = ptr8(widths_buf)
+        src   = ptr8(glyph_data)
+        dst   = ptr8(dest)
+        pal   = ptr8(pal_buf)
+
+        x_pos: int = 0
         i: int = start
         while i < end:
             v: int = int(bp[i])
             if v < 32 or v > 126:
                 v = 32
             v -= 32
-            fb.blit(self._glyph_fb[v], x, 0, key, pal)
-            x += int(widths[v])
-            if x >= max_w:
+
+            glyph_off: int = v * row_size * char_h
+            render_w: int = row_size << 2   # row_size * 4 covers all glyph pixels
+            adv_w: int = int(widths[v])
+
+            py: int = 0
+            while py < char_h:
+                row_off: int = glyph_off + py * row_size
+                px: int = 0
+                while px < render_w:
+                    if x_pos + px >= dest_w:
+                        break
+                    shift: int = 6 - ((px & 3) << 1)
+                    val: int = (int(src[row_off + (px >> 2)]) >> shift) & 3
+                    if val != key:
+                        dst_off: int = (py * dest_w + x_pos + px) << 1
+                        pal_off: int = val << 1
+                        dst[dst_off]     = pal[pal_off]
+                        dst[dst_off + 1] = pal[pal_off + 1]
+                    px += 1
+                py += 1
+
+            x_pos += adv_w
+            if x_pos >= max_w:
                 break
             i += 1
-
-        nt.draw_framebuf(x0, y0, fb)
-        return x
+        return x_pos
 
     @micropython.viper
     def get_width(self, word: object) -> int:
@@ -444,12 +465,14 @@ class Font:
         w_buf = ptr8(word)
         w_len = int(len(word))
         total_width: int = 0
-        for i in range(w_len):
+        i: int = 0
+        while i < w_len:
             v = int(w_buf[i]) # Faster than ord(letter)
             if v < 32 or v > 126:
                 v = 32
             v -= 32
             total_width += int(w_ptr[v])
+            i += 1
             
         return total_width
     
@@ -470,13 +493,15 @@ example_long = """Of all elements that are solid at room temperature, caesium is
 example = "Hello 2 3 23World! aeyshdvfudvtbyktvdtfbyhiuguvtjbnkhgrvfbguylbony;o9"
 example1 = "hi"
 items = os.listdir("/fonts")
-test: int = 0
+test: int = 4
 times: int = 1
+i: int = 0
 t0: int = time.ticks_us()
 if test == 0:
     times: int = 44
-    for i in range(times):
-        font1.draw_text_bytes(example, MyFrameBuffer, 20, 0+i*20,0,None)
+    while i < times:
+        font1.draw_text_bytes(example, MyFrameBuffer, 5, 0+i*20,0,None)
+        i += 1
 elif test == 1:
     times: int = len(items)
     for i in range(len(items)):
@@ -491,7 +516,7 @@ elif test == 3:
     example = example_long
     font1.wrap_text_viper(example,MyFrameBuffer,0,0,480,lim=(0,800))#,vert_swish=14)
 elif test == 4:
-    # example = "Hello World!"
+    example = "H"#ello World!"
     font1.draw_text_bytes(example, MyFrameBuffer, 0, 20,0,None)
 elif test == 5:
     nt.fb_text("example", 20, 20)

@@ -2,7 +2,7 @@ from nt35510_pio import NT35510, cx_bright, color565, MyFrameBuffer
 import machine, random, time, os
 machine.freq(260_000_000)
 
-image_num = 2
+image_num = 0
 file = [f for f in os.listdir("/") if "sample" in f][image_num]
 width = int(file.split("_")[1][:3])
 height = int(file.split("_")[1][4:7])
@@ -47,6 +47,18 @@ def timer(func):
         print(f"function: {func.__name__} completed in {t1-t0:,} ms")
         return result
     return wrapper
+
+n.fill(0)
+t0 = time.ticks_us()
+with open(file,"rb") as f:
+    f.readinto(buf)
+    t2 = time.ticks_us()
+    buf = switch_bytes(buf)
+    # buf[0] = color565(0,0,255)
+    # buf[2] = color565(0,0,255)
+    n.draw_buf(0, 0, width, height, buf)
+t1 = time.ticks_us()
+print(f"{t1-t0:,} {t2-t0:,}")
 
 @micropython.viper
 def average_points_3x3_luma(x: int, y: int, w: int, buf: object) -> int:
@@ -254,18 +266,6 @@ def dith3x3_lbl(buf, w=width, h=height): # completed in 2,019 ms
         dither_line(fb, 0, y, w, dith_pix)
         
 
-n.fill(0)
-t0 = time.ticks_us()
-with open(file,"rb") as f:
-    f.readinto(buf)
-    t2 = time.ticks_us()
-    buf = switch_bytes(buf)
-    # buf[0] = color565(0,0,255)
-    # buf[2] = color565(0,0,255)
-    n.draw_buf(0, 0, width, height, buf)
-t1 = time.ticks_us()
-print(f"{t1-t0:,} {t2-t0:,}")
-
-# blur_3x3(0,0,480,700,buf)
+blur_3x3(0,0,480,700,buf)
 # dith3x3(buf)
-dith3x3_lbl(buf)
+# dith3x3_lbl(buf)
