@@ -18,5 +18,32 @@ This library offers fast displaying of rects to buffers, including a method of r
 
 ### Software Quirks
 While all are technically in Python, through micropython's decorators, lower-level, high-repetition functions are using:
-- [viper](https://docs.micropython.org/en/v1.9.3/pyboard/reference/speed_python.html?highlight=viper#the-viper-code-emitter)
+- [viper](https://docs.micropython.org/en/v1.9.3/pyboard/reference/speed_python.html?highlight=viper#the-viper-code-emitter):
+  ```
+    @micropython.viper
+    def get_width(self, word: object) -> int:
+        w_ptr = ptr8(self.widths) 
+        w_buf = ptr8(word)
+        w_len = int(len(word))
+        total_width: int = 0
+        i: int = 0
+        while i < w_len:
+            v = int(w_buf[i]) # Faster than ord(letter)
+            if v < 32 or v > 126:
+                v = 32
+            v -= 32
+            total_width += int(w_ptr[v])
+            i += 1
+        return total_width
+  ```
 - [inline assembly](https://docs.micropython.org/en/v1.9.3/pyboard/reference/speed_python.html?highlight=viper#accessing-hardware-directly)
+  ```
+   @micropython.asm_thumb
+   def _strobe_n(r0, r1, r2, r3):
+       # r0=addr, r1=low, r2=high, r3=count
+       label(LOOP)
+       str(r1, [r0, 0])
+       str(r2, [r0, 0])
+       sub(r3, 1)
+       bne(LOOP)
+  ```
