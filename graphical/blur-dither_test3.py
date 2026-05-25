@@ -2,7 +2,7 @@ from nt35510 import NT35510, cx_bright, color565, MyFrameBuffer
 import machine, random, time, os
 machine.freq(260_000_000)
 
-image_num = 2
+image_num = 1
 file = [f for f in os.listdir("/") if "sample" in f][image_num]
 width = int(file.split("_")[1][:3])
 height = int(file.split("_")[1][4:7])

@@ -304,6 +304,6 @@ def off_to_on_fade():
 # off_to_on_fade()
 # n.draw_buf(0, 0, width, height, buf)
 
-blur_3x3(0,0,480,700,buf)
+# blur_3x3(0,0,480,700,buf)
 # dith3x3(buf)
-dith3x3_lbl(buf)
+# dith3x3_lbl(buf)

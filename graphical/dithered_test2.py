@@ -1,4 +1,4 @@
-from nt35510_pio import NT35510, cx_bright, color565, MyFrameBuffer
+from nt35510 import NT35510, cx_bright, color565, MyFrameBuffer
 import machine, random
 machine.freq(240_000_000)
 

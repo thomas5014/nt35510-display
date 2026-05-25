@@ -210,14 +210,16 @@ def fancy_hline_dome(fb,x,y,w,c,light_point,lp_end):
         color = cx_bright(c,bri)
         fb.pixel(x+i,y,color)
 
-# fancy_fill_rect_a(buf, 0, 50, 220, 380, (255,0,0), light_point=(110,240), drop_off=200)
-# fancy_fill_rect_b(buf, 220, 50, 220, 380, (255,0,0), light_point=(330,240), drop_off=200)
-fancy_fill_rect_direc(buf, 0, 0, 480, 800, (255,0,0), light_point=(240,400), drop_off=200) # idk what this does
+fancy_fill_rect_a(buf, 0, 50, 220, 380, (255,0,0), light_point=(110,240), drop_off=200)
+fancy_fill_rect_b(buf, 220, 50, 220, 380, (255,0,0), light_point=(330,240), drop_off=200)
+# fancy_fill_rect_direc(buf, 0, 0, 480, 800, (255,0,0), light_point=(240,400), drop_off=200) # idk what this does
 # fancy_rect(buf, 50, 50, 220, 380, (255,0,0), light_point=(160,240), drop_off=200)
+
 n.draw_framebuf(0, 0, buf)
 c = (255,0,0)
 print("c_bright: ", c_bright(c[0],c[1],c[2],50))
 print("cx_bright: ",cx_bright(color565(c[0],c[1],c[2]),50))
+
 # c_bright:  30720
 # cx_bright:  108
 # n.fill(0)

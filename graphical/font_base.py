@@ -393,7 +393,7 @@ example_long = """Peter Piper picked a peck of pickled peppers.\nA peck of pickl
 example = "Hello 2 3 23World! aeyshdvfudvtbyktvdtfbyhiuguvtjbnkhgrvfbguylbony;"
 example1 = "hi"
 items = os.listdir("/fonts")
-test: int = 2
+test: int = 1
 times: int = 1
 i: int = 0
 t0: int = time.ticks_us()
@@ -429,6 +429,9 @@ elif test == 5: # spped numbers
         if i % 400 == 0:
             print(val)
         i += 1
+elif test == 6:
+    example = "h"
+    font1.draw_text_bytes(example, MyFrameBuffer, 5, 0+i*20,0,None)
 
 t1 = time.ticks_us()
 t2 = time.ticks_us()
