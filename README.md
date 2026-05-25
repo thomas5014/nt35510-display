@@ -43,12 +43,19 @@ def get_width(self, word: object) -> int:
 ```
 - [inline assembly](https://docs.micropython.org/en/v1.9.3/pyboard/reference/speed_python.html?highlight=viper#accessing-hardware-directly)
 ```
+# can only go up to 12! on a 32bit system
 @micropython.asm_thumb
-def _strobe_n(r0, r1, r2, r3):
-  # r0=addr, r1=low, r2=high, r3=count
-  label(LOOP)
-  str(r1, [r0, 0])
-  str(r2, [r0, 0])
-  sub(r3, 1)
-  bne(LOOP)
+def factorial(r0):
+    cmp(r0,2)
+    bls(EXIT)
+    mov(r1,r0)
+    label(LOOP)
+    sub(r1,r1,1)
+    mul(r0,r1)
+    cmp(r1,2)
+    bgt(LOOP)
+    label(EXIT)
+    cmp(r0,0)
+    it(eq)
+    mov(r0,1)
 ```
