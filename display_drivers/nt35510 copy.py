@@ -24,6 +24,11 @@ GPIO_SET   = SIO_BASE + 0x1C
 DATA_MASK  = const(0xFFFF)  # GPIO0–15
 WR_MASK    = const(1 << 18)
 DC_MASK    = const(1 << 20)
+# IO_BANK0 atomic aliases for GPIO18 CTRL (base=0x40028000, GPIO18 offset=0x94)
+# Atomic SET/CLR only modify the written bits — FUNCSEL is preserved after sm1.init().
+GPIO18_CTRL_SET = 0x4002A094  # IO_BANK0 base + 0x2000 (atomic SET) + 0x94
+GPIO18_CTRL_CLR = 0x4002B094  # IO_BANK0 base + 0x3000 (atomic CLR) + 0x94
+OUTOVER_HIGH    = const(3 << 12)  # CTRL bits 13:12 = OUTOVER; value 3 = force output HIGH
 
 @micropython.asm_thumb
 def _strobe_bulk(r0, r1, r2, r3):
@@ -85,7 +90,7 @@ def _strobe_n(r0, r1, r2, r3):
 from rp2 import PIO, StateMachine, asm_pio, DMA
 
 PIO0_TXF1 = 0x50200014  # PIO0 SM1 TX FIFO
-SM1_FREQ   = 60_000_000  # 60 MHz → 16.7 ns/instruction
+SM1_FREQ   = 130_000_000  # 60 MHz → 16.7 ns/instruction
 
 @asm_pio(
     out_init=(PIO.OUT_HIGH,)*16,
@@ -103,12 +108,12 @@ sm1 = StateMachine(1, _pio_16wr_dma, freq=SM1_FREQ,
                    out_base=machine.Pin(0), sideset_base=machine.Pin(18))
 
 _dma = DMA()
-_dma_ctrl = _dma.pack_ctrl(
-    size=1,           # halfword — each transfer moves one 16-bit pixel
+_dma_ctrl_le = _dma.pack_ctrl(
+    size=1,
     inc_read=True,
-    inc_write=False,  # always target PIO TX FIFO (fixed address)
-    treq_sel=1,       # DREQ_PIO0_TX1
-    bswap=True,       # [hi,lo] bytes in buffer → hi<<8|lo in FIFO
+    inc_write=False,
+    treq_sel=1,
+    bswap=False,      # little-endian RGB565 framebuffer — no swap needed
     irq_quiet=True,
     enable=True,
 )
@@ -219,13 +224,27 @@ class NT35510:
             pout[0] = low | WR_MASK
             i += 1
 
-    def _bus_write16_buf_dmapio(self,buf):
+    def _bus_write16_buf_dmapio(self, buf, width, height):
+        # NT35510 requires a DC=1 WR strobe (via bit-bang) before PIO/DMA pixel writes work.
+        # set_window leaves DC=0 (CMD_RAMWR is a command); _bus_write16 gives the needed prime.
+        self._bus_write16(0x0000)
+        # Lock WR HIGH via OUTOVER during sm1.init() — the SIO→PIO FUNCSEL transition
+        # briefly drives WR LOW (PIO output register = 0 before sideset_init applies).
+        # Atomic SET/CLR leave FUNCSEL intact after sm1.init() changes it to PIO.
+        machine.mem32[GPIO_SET]        = DC_MASK       # DC=1 before FUNCSEL switch
+        machine.mem32[GPIO18_CTRL_SET] = OUTOVER_HIGH  # lock WR HIGH
+        sm1.init(_pio_16wr_dma, freq=SM1_FREQ, out_base=machine.Pin(0), sideset_base=machine.Pin(18))
+        machine.mem32[GPIO18_CTRL_CLR] = OUTOVER_HIGH  # release — PIO already holds WR=1
         sm1.active(1)
         _dma.config(read=buf, write=PIO0_TXF1, count=width * height,
-                    ctrl=_dma_ctrl, trigger=True)
+                    ctrl=_dma_ctrl_le, trigger=True)
         while _dma.active():
             pass
         sm1.active(0)
+        # Restore GPIO0-15 and GPIO18 to SIO so bit-bang path continues to work
+        for i in range(16):
+            machine.Pin(i, machine.Pin.OUT)
+        machine.Pin(18, machine.Pin.OUT, value=1)  # WR idle-high
 
     @micropython.viper
     def _bus_write16_buf_be(self, buf):
@@ -324,10 +343,9 @@ class NT35510:
     def fill(self,color: int):
         self.fill_rect(0, 0, self.width, self.height, color)
 
-    @micropython.viper
-    def draw_buf(self, x: int, y: int, width: int, height: int, buf: object):
+    def draw_buf(self, x, y, width, height, buf):
         self.set_window(x, y, x + width - 1, y + height - 1)
-        self._bus_write16_buf(buf)
+        self._bus_write16_buf_dmapio(buf, width, height)
 
     @micropython.viper
     def draw_buf_be(self, x: int, y: int, width: int, height: int, buf: object):
@@ -838,4 +856,3 @@ if __name__ == "__main__":
         buf = f.read()
         d.draw_buf(0, 0, 480, 700, buf)
 
-"""['100XMultiplier_System_My_Essence_is_Glitched_as_an_Ultimate_Cheat_51_WN', 'Shadow_Slave_2864_WN', 'Demonic_Pornstar_System_615_WN', 'A_Cold-Blooded_POV_63_WN', 'Slime_Evolution_42_WN', 'Accidentally_Reincarnated_in_Cultivation_World_200_WN', 'SSS_Awakening_Rebirth_of_the_Strongest_Vampire_God_714_WN', 'a_little_sisters_all_i_need_29', 'His_innocent_wife_is_a_dangerous_hacker_550_WN', 'An_Extras_Rise_in_a_Romance_Fantasy_Novel_47_WN', '100X_Returns_System_I_Dominate_the_Age_of_Gods_71_WN', 'Bandit_System_I_Just_Wanted_To_Go_Home_79_WN', 'Wastelands_Only_King_137_WN', 'BIPARTITE_33_WN', 'The_Lone_Healer_224_WN', 'Brand_New_Life_Online_Rise_Of_The_Goddess_Of_Harvest_1673_WN', 'The_Demon_King_Chases_His_Wife_11385', 'The_Evil_God_Summoned_by_the_Saintess_42_WN', 'Infinite_Mana_in_the_Apocalypse_4667_WN', 'Contracted_The_Beautiful_Triplets_And_I_Gained_The_10000x_Rebate_System_470_WN', 'Engagement_Canceled_I_Can_Extract_Prefixes_109_WN', 'Cultivation_Online_1997', 'Daily_Intelligence_System_Dont_Kill_Me_Honey_922_WN', 'Doomcycle_Ninety_Days_Before_the_End_10_WN', 'The_Nameless_Extra_I_Proofread_This_World_43_WN', 'Embers_Ad_Infinitum_953_WN', 'Strongest_Hammer_God_424_WN', 'Evolving_infinitely_from_ground_zero_577_WN', 'Online_Game_I_Have_A_100_Drop_Rate_85_WN', 'F-ranker_Sword_Saint_My_Soulbound_Sword_is_Secretly_SSS-tier_77_WN', 'Vampire_Summoners_Rebirth_Summoning_The_Vampire_Queen_At_The_Start_1537_WN', 'Follow_the_path_of_Dao_from_infancy_1498_WN', 'Game-like_Apocalypse_Rise_Of_The_Blood_Monarch_14_WN', 'I_Just_Wanted_to_Teach_Cultivation_But_Goddesses_Keep_Coming_213_WN', 'Hero_of_Darkness_1176_WN', 'Horror_Game_Developer_My_games_arent_that_scary_188_WN', 'I_AM_A_MAGE_BUT_WITH_MILF_SYSTEM_539_WN', 'Strongest_Mage_with_the_Lust_system_880_WN', 'Izuka_175_WN', 'Jobless_Transmigration_Im_the_only_one_who_loves_monsters_44_WN', 'I_Have_10000_SSS_Rank_Villains_In_My_System_Space_282_WN', 'Junior_sister_keep_forbear_for_a_while_I_almost_become_invincible_as_soon_74_WN', 'Kagami_Witch_of_the_Sealed_Pact_34_WN', 'Kill_the_Sun_972', 'Supreme_Magus (1)', 'Legacy_Of_Fire_Chronicles_Of_The_F-ranked_Anomaly_127_WN', 'Lord_of_Mysteries_2-_Circle_of_Inevitability_WN', 'Lord_of_Mysteries_1432_WN', 'Mafia_Boss_To_Another_World_26_WN', 'Mysteries_of_Immortal_Puppet_Master_1041_WN', 'The_Innkeeper_1910_WN', 'Naked_Sword_Art_445_WN', 'Napping_My_Way_to_Immortality_Until_I_Become_Strong_enough_13_WN', 'Ocean_Lords_Start_Harvesting_Double_from_Dice_Rolls_193_WN', 'Cultivating_life_in_Another_World_with_my_Op_Wife_17_WN', "Omniscient Reader's Viewpoint - Sing-shong (singsyong)", 'Origins_of_Blood_90_WN', 'Paragon_of_Sin_1945', 'Primordial_Awakening_I_Can_Evolve_My_Skills_Infinitely_228_WN', 'Qingge_121_WN', 'Reborn_as_the_bastard_son_of_a_Duke_41_WN', 'Resetting_Lady_282', 'Reverend_Insanity_2334_WN', 'Struggling_as_a_Villain_305_WN', 'The Noble Queen-A Shadow Slave Fanfic_514', 'The_Authors_POV_WN', 'The_Eminence_in_the_Shadow_202', 'Throne_of_Magical_Arcana_910_WN', 'Ultimate_Tycoon_Building_the_Richest_Empire_with_System_and_Heroines_85_WN', 'Unscientific_Beast_Taming_1962_WN', 'Vampires_Slice_Of_Life_1198_WN', 'Weakest_Beast_Tamer_Gets_All_SSS_Dragons_690_WN', 'While_My_Mage_Wife_Grinds_I_Power_Up_Idly_140_WN', 'X_Saga_Eng_Ver_60_WN', 'X-Code_312_WN', 'Yandere_Levelling_in_Her_World_62_WN', 'You_Have_Science_I_Have_Martial_Arts_169_WN', 'ZARQA_210_WN', 'Zombie_King_Babysits_the_Reborn_Empress_274_WN']"""

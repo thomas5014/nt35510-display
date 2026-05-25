@@ -17,9 +17,11 @@ def dithered_rect(x,y,w,h,tcolor,bcolor,dithbuf=None,use_gcd=True):
     def dith_line(x,y,percent):
         nonlocal fb
         fb.fill(tcolor)
-        for lx in range(w):
+        lx: int = 0
+        while lx < w:
             if random.random() < percent/100:
-                fb.pixel(lx, 0, bcolor)
+                fb.pixel(lx, y, bcolor)
+            lx += 1
         n.draw_framebuf(x,y,fb)
 
     y -= h//2

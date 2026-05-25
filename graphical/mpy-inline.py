@@ -183,12 +183,66 @@ def safe_mul(r0,r1):
 
 import array
 
-_test_buf = array.array('I', [0])
+_test_buf = array.array('I', [0,0])
+_test_buf = bytearray(4)
+for i in range(0,len(_test_buf),2): _test_buf[i] = 0xff 
 
 @micropython.asm_thumb
 def _test_str(r0, r1):
     # r0 = address, r1 = value to write
     str(r1, [r0, 0])
 
-_test_str(_test_buf, 0xDEADBEEF)
-print(hex(_test_buf[0]))  # expect 0xdeadbeef
+# _test_str(_test_buf, 0xDEADBEEF)
+# print(hex(_test_buf[0]))  # expect 0xdeadbeef
+# print(_test_buf)
+@micropython.viper
+def test_ldrb(buf):
+    @micropython.asm_thumb
+    def test_ldrb(r0,r1):
+        mov(r2,1)
+        bic(r1,r2)
+        
+        mov(r2,r0)
+        label(LOOP_START)
+        add(r3,r0,r1)
+        cmp(r2,r3)
+        beq(LOOP_END)
+
+        ldrb(r3,[r2,0])
+        ldrb(r4,[r2,1])
+
+        strb(r4,[r2,0])
+        strb(r3,[r2,1])
+        
+        add(r2,2)
+        b(LOOP_START)
+        label(LOOP_END)
+    return test_ldrb(int(ptr8(buf)),len(buf))
+
+print("before: ",_test_buf)
+print(hex(test_ldrb(_test_buf)))
+print(_test_buf)
+
+@micropython.asm_thumb
+def bge_test(r0,r1):
+    cmp(r0,r1)
+    bge(END)
+    mov(r0,0)
+    label(END)
+
+# print(bge_test(6,6))
+
+@micropython.asm_thumb
+def bge_test2(r0,r1,r2,r3):
+    mov(r2,r0)
+    add(r3,r0,r1)
+    label(LOOP_START)
+    cmp(r2,r3)
+    bge(LOOP_END)
+    add(r2,1)
+    b(LOOP_START)
+    label(LOOP_END)
+
+
+# print(bge_test2(0,4,0,0))
+

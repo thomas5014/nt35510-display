@@ -1,4 +1,4 @@
-from nt35510_pio import NT35510, cx_bright, color565, MyFrameBuffer
+from nt35510 import NT35510, cx_bright, color565, MyFrameBuffer
 import machine, random, time, os
 machine.freq(260_000_000)
 
@@ -27,16 +27,36 @@ buf = bytearray(width*height*2)
 del temp
 
 @micropython.viper
-def switch_bytes(buf: object):
-    p = ptr8(buf)
-    n = int(len(buf)) & ~1
-    tmp: int = 0
-    for i in range(0, n, 2):
-        tmp = p[i]
-        p[i] = p[i + 1]
-        p[i + 1] = tmp
+def switch_bytes(buf):
+    @micropython.asm_thumb
+    def switch_bytes(r0,r1):
+        mov(r2,1)
+        bic(r1,r2)
+        
+        mov(r2,r0)
+        label(LOOP_START)
+        add(r3,r0,r1)
+        cmp(r2,r3)
+        beq(LOOP_END)
 
-    return buf
+        ldrb(r3,[r2,0])
+        ldrb(r4,[r2,1])
+
+        strb(r4,[r2,0])
+        strb(r3,[r2,1])
+        
+        add(r2,2)
+        b(LOOP_START)
+        label(LOOP_END)
+    return switch_bytes(int(ptr8(buf)),len(buf))
+
+# b = bytearray(16)
+# for i in range(len(b)): b[i] = 0xf0 
+# print(b)
+# switch_bytes(b)
+# print(b)
+# import sys
+# sys.exit(1)
 
 def timer(func):
     def wrapper(*args, **kwargs):
@@ -48,17 +68,17 @@ def timer(func):
         return result
     return wrapper
 
+
 n.fill(0)
 t0 = time.ticks_us()
 with open(file,"rb") as f:
     f.readinto(buf)
+    switch_bytes(buf) # for testing non mv versions of blur/dither
     t2 = time.ticks_us()
-    buf = switch_bytes(buf)
-    # buf[0] = color565(0,0,255)
-    # buf[2] = color565(0,0,255)
     n.draw_buf(0, 0, width, height, buf)
+    # n.draw_buf_be(0, 0, width, height, buf)  # swap+draw in one PSRAM pass; no switch_bytes needed
 t1 = time.ticks_us()
-print(f"{t1-t0:,} {t2-t0:,}")
+print(f"{t1-t0:,}:Total {t2-t0:,}:Read {t1-t2:,}:Draw")
 
 @micropython.viper
 def average_points_3x3_luma(x: int, y: int, w: int, buf: object) -> int:
@@ -264,8 +284,26 @@ def dith3x3_lbl(buf, w=width, h=height): # completed in 2,019 ms
     fb = MyFrameBuffer(w, 3, bytearray(6*w))
     for y in range(0, h - 2, 3):
         dither_line(fb, 0, y, w, dith_pix)
-        
+
+@micropython.viper
+def cx_bright(color:int,brightness:int) -> int:
+    if brightness == 0:
+        return 0
+    return ((color>>11)*brightness//100)<<11 | (((color & 2016) >> 5)*brightness//100)<<5 | ((color & 31)*brightness//100)
+       
+@micropython.viper
+def off_to_on_fade():
+    i:int = 0
+    b = ptr8(buf)
+    while i < 800*480*2:
+        c:int = int(cx_bright(0xffff,i//7680))
+        b[i] = c & 0xff
+        b[i+1] = c >> 8
+        i += 2
+
+# off_to_on_fade()
+# n.draw_buf(0, 0, width, height, buf)
 
 blur_3x3(0,0,480,700,buf)
 # dith3x3(buf)
-# dith3x3_lbl(buf)
+dith3x3_lbl(buf)

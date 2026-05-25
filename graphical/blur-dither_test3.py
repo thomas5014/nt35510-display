@@ -2,7 +2,7 @@ from nt35510 import NT35510, cx_bright, color565, MyFrameBuffer
 import machine, random, time, os
 machine.freq(260_000_000)
 
-image_num = 0
+image_num = 2
 file = [f for f in os.listdir("/") if "sample" in f][image_num]
 width = int(file.split("_")[1][:3])
 height = int(file.split("_")[1][4:7])
@@ -159,10 +159,15 @@ t0 = time.ticks_us()
 with open(file,"rb") as f:
     f.readinto(buf)
     t2 = time.ticks_us()
-    n.draw_buf_be(0, 0, width, height, buf)  # swap+draw in one PSRAM pass; no switch_bytes needed
+    n.draw_buf(0, 0, width, height, buf)
+    # n.draw_buf_be(0, 0, width, height, buf)  # swap+draw in one PSRAM pass; no switch_bytes needed
 t1 = time.ticks_us()
 print(f"{t1-t0:,}:Total {t2-t0:,}:Read {t1-t2:,}:Draw")
 switch_bytes(buf) # for testing non mv versions of blur/dither
+
+# Displaying file: sample6_480-800.raw, with w and h of 480 and 800 respectively.
+# 116,774:Total 95,618:Read 21,156:Draw
+# bytearray(b'A\x08a\x10 \x08A\x08\x81\x10\xa2\x18\xe3 \xa2\x18')
 
 @timer
 def blur2x2(buf, dest, w=width, h=height):
@@ -229,8 +234,8 @@ def test_avg_565(buf, w=80, h=height):
 # n.fill(0)
 # blur2x2(buf,n)
 print(buf[:16])
-dith2x2(buf)
-# dith2x2_lbl(buf)
+# dith2x2(buf)
+dith2x2_lbl(buf)
 
 # blur2x2
 # function: blur2x2 completed in 24,539 ms

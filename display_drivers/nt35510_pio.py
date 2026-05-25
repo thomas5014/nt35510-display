@@ -19,9 +19,14 @@ def color565(r, g, b):
 from micropython import const
 SIO_BASE   = 0xD0000000  # alias for SIO (faster to access, same hardware)
 GPIO_OUT   = SIO_BASE + 0x10
+GPIO_SET   = const(0xD000001C)  # SIO atomic-set
 DATA_MASK  = const(0xFFFF)  # GPIO0–15
 WR_MASK    = const(1 << 18)
 DC_MASK    = const(1 << 20)
+# IO_BANK0 atomic aliases for GPIO18 CTRL (assumes WR=GPIO18)
+GPIO18_CTRL_SET = const(0x4002A094)  # IO_BANK0 + 0x2000 (atomic SET) + GPIO18 offset
+GPIO18_CTRL_CLR = const(0x4002B094)  # IO_BANK0 + 0x3000 (atomic CLR) + GPIO18 offset
+OUTOVER_HIGH    = const(3 << 12)     # CTRL bits 13:12 = OUTOVER; value 3 = force HIGH
 
 class MyFrameBuffer(framebuf.FrameBuffer):
     def __init__(self, width, height, buf=None):

@@ -61,24 +61,25 @@ def draw_file_chunked(filename, x=0, y=0, w=width, h=height):
             row += rows
     print(f"  read:{read_us:,} draw:{draw_us:,} ({h//CHUNK_ROWS + (1 if h%CHUNK_ROWS else 0)} chunks)")
 
-n.fill(0)                                                 
-t = time.ticks_us()
-n.fill(0xF800)
-print(f"fill: {time.ticks_diff(time.ticks_us(), t):,} us")
+if False:
+    n.fill(0)                                                 
+    t = time.ticks_us()
+    n.fill(0xF800)
+    print(f"fill: {time.ticks_diff(time.ticks_us(), t):,} us")
 
-t0 = time.ticks_us()
-draw_file_chunked(file)
-t1 = time.ticks_us()
-print(f"{t1-t0:,} us chunked (flash->SRAM->display)")
+    t0 = time.ticks_us()
+    draw_file_chunked(file)
+    t1 = time.ticks_us()
+    print(f"{t1-t0:,} us chunked (flash->SRAM->display)")
 
-# comparison: full PSRAM buf approach
-t0 = time.ticks_us()
-with open(file, "rb") as f:
-    f.readinto(buf)
-    t2 = time.ticks_us()
-    n.draw_buf_be(0, 0, width, height, buf)
-t1 = time.ticks_us()
-print(f"{t1-t0:,}:Total {t2-t0:,}:Read {t1-t2:,}:Draw (PSRAM)")
+    # comparison: full PSRAM buf approach
+    t0 = time.ticks_us()
+    with open(file, "rb") as f:
+        f.readinto(buf)
+        t2 = time.ticks_us()
+        n.draw_buf_be(0, 0, width, height, buf)
+    t1 = time.ticks_us()
+    print(f"{t1-t0:,}:Total {t2-t0:,}:Read {t1-t2:,}:Draw (PSRAM)")
 
 # ── DMA + PIO SM1 draw path ────────────────────────────────────────────────
 # SM1 uses 1-bit non-optional sideset for WR (pin 18).
@@ -87,6 +88,12 @@ print(f"{t1-t0:,}:Total {t2-t0:,}:Read {t1-t2:,}:Draw (PSRAM)")
 # arrives in the PIO TX FIFO as a correct 16-bit pixel (hi<<8|lo).
 # CS is held low manually across all chunks so one CMD_RAMWR covers the whole
 # image; GRAM address auto-advances without intermediate set_window calls.
+
+# Prime: one bit-bang GRAM write while GPIO is still in SIO mode.
+# StateMachine() below steals GPIO0-15+18 for PIO; after that, any bit-bang
+# draw silently fails.  The PIO path only works if the display has already
+# received a complete CASET+PASET+CMD_RAMWR transaction at least once.
+n.fill(0)
 
 from rp2 import PIO, StateMachine, asm_pio, DMA
 
@@ -118,15 +125,43 @@ _dma_ctrl = _dma.pack_ctrl(
     enable=True,
 )
 
+GPIO_SET          = 0xD000001C  # SIO atomic-set
+DC_MASK           = 1 << 20    # DC on GPIO20
+# IO_BANK0 atomic aliases for GPIO18 CTRL (IO_BANK0_BASE=0x40028000, GPIO18 offset=0x94).
+# Atomic SET/CLR only touch the written bits — FUNCSEL is left as-is after sm1.init().
+GPIO18_CTRL_SET   = 0x4002A094  # IO_BANK0 base + 0x2000 (atomic SET) + 0x94
+GPIO18_CTRL_CLR   = 0x4002B094  # IO_BANK0 base + 0x3000 (atomic CLR) + 0x94
+OUTOVER_HIGH      = 3 << 12    # CTRL bits 13:12 = OUTOVER; value 3 = force output HIGH
+
+def _pio_claim():
+    """Reclaim GPIO0-15+GPIO18 for PIO (call after set_window).
+    sm1.init() pulses WR LOW during the SIO→PIO FUNCSEL transition because PIO output
+    register starts at 0 before sideset_init=OUT_HIGH is applied.  Fix: force WR HIGH
+    via OUTOVER atomic SET (leaves FUNCSEL alone) for the duration of sm1.init.
+    After sm1.init the PIO output register already holds WR=1 (sideset_init=OUT_HIGH),
+    so atomic CLR of OUTOVER is safe — WR stays HIGH from PIO."""
+    machine.mem32[GPIO_SET]        = DC_MASK      # DC=1
+    machine.mem32[GPIO18_CTRL_SET] = OUTOVER_HIGH  # lock WR HIGH
+    sm1.init(_pio_16wr_dma, freq=SM1_FREQ, out_base=machine.Pin(0), sideset_base=machine.Pin(18))
+    machine.mem32[GPIO18_CTRL_CLR] = OUTOVER_HIGH  # release — PIO already holds WR=1
+
+def _sio_restore():
+    """Return GPIO0-15+GPIO18 to SIO so bit-bang set_window works."""
+    for i in range(16):
+        machine.Pin(i, machine.Pin.OUT)
+    machine.Pin(18, machine.Pin.OUT, value=1)  # WR idle-high
+
 def draw_file_dma_chunked(filename, x=0, y=0, w=width, h=height):
     row_bytes = w * 2
     mv = memoryview(frac_buf)
     read_us = 0
     draw_us = 0
 
+    _sio_restore()
+    n.cs(0)
     n.set_window(x, y, x + w - 1, y + h - 1)  # one CMD_RAMWR for the whole image
-    n.cs(0)   # hold CS low — GRAM address advances until CS rises
-    n.dc(1)   # data mode
+    n._bus_write16(0x0000)  # NT35510 requires a DC=1 WR strobe before PIO/DMA pixel writes
+    _pio_claim()
     sm1.active(1)
 
     with open(filename, "rb") as f:
@@ -147,13 +182,15 @@ def draw_file_dma_chunked(filename, x=0, y=0, w=width, h=height):
 
     sm1.active(0)
     n.cs(1)
+    _sio_restore()
     print(f"  read:{read_us:,} draw:{draw_us:,} ({h//CHUNK_ROWS + (1 if h%CHUNK_ROWS else 0)} chunks)")
 
-n.fill(0)
-t0 = time.ticks_us()
-draw_file_dma_chunked(file)
-t1 = time.ticks_us()
-print(f"{t1-t0:,} us DMA+PIO single-buf")
+if False:
+    n.fill(0)
+    t0 = time.ticks_us()
+    draw_file_dma_chunked(file)
+    t1 = time.ticks_us()
+    print(f"{t1-t0:,} us DMA+PIO single-buf")
 
 # ── Double-buffered DMA: overlap flash read with DMA draw ──────────────────
 # While DMA drains buf_A → display, CPU fills buf_B from flash, then swap.
@@ -169,9 +206,11 @@ def draw_file_dma_double(filename, x=0, y=0, w=width, h=height):
     read_us = 0
     idle_us = 0
 
-    n.set_window(x, y, x + w - 1, y + h - 1)
+    _sio_restore()
     n.cs(0)
-    n.dc(1)
+    n.set_window(x, y, x + w - 1, y + h - 1)
+    n._bus_write16(0x0000)  # NT35510 requires a DC=1 WR strobe before PIO/DMA pixel writes
+    _pio_claim()
     sm1.active(1)
 
     with open(filename, "rb") as f:
@@ -217,14 +256,16 @@ def draw_file_dma_double(filename, x=0, y=0, w=width, h=height):
 
     sm1.active(0)
     n.cs(1)
+    _sio_restore()
     chunks = h // CHUNK_ROWS + (1 if h % CHUNK_ROWS else 0)
     print(f"  read:{read_us:,} dma_idle:{idle_us:,} ({chunks} chunks)")
 
-n.fill(0)
-t0 = time.ticks_us()
-draw_file_dma_double(file)
-t1 = time.ticks_us()
-print(f"{t1-t0:,} us DMA+PIO double-buf")
+if False:
+    n.fill(0)
+    t0 = time.ticks_us()
+    draw_file_dma_double(file)
+    t1 = time.ticks_us()
+    print(f"{t1-t0:,} us DMA+PIO double-buf")
 
 # ── DMA directly from PSRAM ────────────────────────────────────────────────
 # buf is already in PSRAM (0x11xxxxxx). DMA reads through XIP/QMI (QPI at
@@ -233,9 +274,11 @@ print(f"{t1-t0:,} us DMA+PIO double-buf")
 # when the same image is drawn repeatedly from PSRAM).
 
 def draw_psram_dma():
-    n.set_window(0, 0, width - 1, height - 1)
+    _sio_restore()
     n.cs(0)
-    n.dc(1)
+    n.set_window(0, 0, width - 1, height - 1)
+    n._bus_write16(0x0000)  # NT35510 requires a DC=1 WR strobe before PIO/DMA pixel writes
+    _pio_claim()
     sm1.active(1)
     _dma.config(read=buf, write=PIO0_TXF1, count=width * height,
                 ctrl=_dma_ctrl, trigger=True)
@@ -243,21 +286,55 @@ def draw_psram_dma():
         pass
     sm1.active(0)
     n.cs(1)
+    _sio_restore()
 
-t0 = time.ticks_us()
-with open(file, "rb") as f:
-    f.readinto(buf)
-t_load = time.ticks_diff(time.ticks_us(), t0)
-print(f"load→PSRAM: {t_load:,} us")
+@micropython.viper
+def _fill_red_be(b: object):
+    """Fill buffer with big-endian RGB565 red (0xF8, 0x00 per pixel)."""
+    p = ptr8(b)
+    n: int = int(len(b)) & ~1
+    i: int = 0
+    while i < n:
+        p[i]     = 0xF8
+        p[i + 1] = 0x00
+        i += 2
 
-n.fill(0)
-t0 = time.ticks_us()
-draw_psram_dma()
-t1 = time.ticks_us()
-print(f"{t1-t0:,} us DMA from PSRAM (cold cache)")
+# ── DMA sanity check: SRAM → display ──────────────────────────────────────────
+# Fill buf_A (SRAM) with bright red and DMA the top CHUNK_ROWS to the display.
+# If the top band turns red, the DMA+PIO path works; image just has dark content.
+_fill_red_be(buf_A)
+_sio_restore()
+n.cs(0)
+n.set_window(0, 0, width - 1, CHUNK_ROWS - 1)
+n._bus_write16(0xF800)
+# n.fill(0)
+# n.pixel(0,0,0)
+_pio_claim()
+sm1.active(1)
+_dma.config(read=memoryview(buf_A), write=PIO0_TXF1, count=width * CHUNK_ROWS,
+            ctrl=_dma_ctrl, trigger=True)
+while _dma.active():
+    pass
+sm1.active(0)
+n.cs(1)
+_sio_restore()
+print("red-band DMA done — top 200 rows should be RED")
 
-n.fill(0)
-t0 = time.ticks_us()
-draw_psram_dma()
-t1 = time.ticks_us()
-print(f"{t1-t0:,} us DMA from PSRAM (warm cache)")
+if True:
+    t0 = time.ticks_us()
+    with open(file, "rb") as f:
+        f.readinto(buf)
+    t_load = time.ticks_diff(time.ticks_us(), t0)
+    print(f"load→PSRAM: {t_load:,} us")
+    print(f"buf[0:4]: {[hex(b) for b in buf[:4]]}")
+
+    t0 = time.ticks_us()
+    draw_psram_dma()
+    t1 = time.ticks_us()
+    print(f"{t1-t0:,} us DMA from PSRAM (cold cache)")
+
+    # # Bit-bang fallback with same buf — compare with DMA result.
+    # _sio_restore()
+    # n.cs(0)
+    # n.draw_buf_be(0, 0, width, height, buf)
+    # print("bit-bang draw done")

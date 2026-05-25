@@ -2,7 +2,7 @@ from nt35510 import NT35510, MyFrameBuffer
 import machine, random, time, os
 machine.freq(260_000_000)
 
-gravity = 
+gravity = 0
 
 n = NT35510()
 temp = bytearray(520*1024*2)
