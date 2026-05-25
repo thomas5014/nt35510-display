@@ -4,7 +4,7 @@ Utilizing the DMA and PIO processes of the RP2350(in this case, the B variant) o
 This library offers fast displaying of rects to buffers, including a method of rendering text into two-bit per pixel (4 grayscale) glyphs.
 
 
-##Speeds!
+## Speeds!
 ----------------------------------------
 1. fullframe color flush:
    - 7.5ms
@@ -18,7 +18,7 @@ This library offers fast displaying of rects to buffers, including a method of r
      - 2,948 chars- 69.4
 
 
-###Software Quirks
+### Software Quirks
 -------------------
 While all are technically in Python, through micropython's decorators, lower-level, high-repetition functions are using:
 - [viper](https://docs.micropython.org/en/v1.9.3/pyboard/reference/speed_python.html?highlight=viper#the-viper-code-emitter)
