@@ -1,12 +1,27 @@
-from nt35510 import NT35510, color565, MyFrameBuffer, cx_bright
+# font_base.py -- 2-bit anti-aliased font renderer for the NT35510 display.
+#
+# Library module only: no hardware setup or benchmarks happen on import.
+# See font_base_demo.py for usage examples and the benchmark harness.
+import micropython
 from color_control import PALETTE_WHITE
-import framebuf, gc, micropython, os, uctypes
+
+# Printable ASCII range covered by .raw2 font files.
+# NOTE: viper functions below repeat these as literals (32 / 126) because
+# reading module globals from viper code costs a dict lookup per call.
+_FIRST = 32
+_LAST = 126
+_NUM_CHARS = _LAST - _FIRST + 1
 
 @micropython.asm_thumb
 def _blit_gs2_row(r0, r1, r2, r3):
-    # r0: dst byte addr, r1: src byte addr, r2: pal byte addr
+    # Blit one row of GS2_HMSB (2 bits/pixel) glyph data into an RGB565
+    # buffer, mapping each 2-bit value through a 4-entry RGB565 palette.
+    # r0: dst byte addr (RGB565 row), r1: src byte addr (GS2 row)
+    # r2: palette byte addr (4 x u16 RGB565)
     # r3: packed = n_bytes | ((key & 7) << 8)
-    #     key 0-3 = transparent palette index; key 4-7 = no transparency (-1 & 7 = 7)
+    #     key 0-3 = transparent palette index (pixel skipped);
+    #     key 4-7 = no transparency (-1 & 7 = 7 never matches a 2-bit value)
+    # Each src byte expands to 4 pixels (8 dst bytes).
     push({r4, r5, r6, r7})
     lsr(r7, r3, 8)       # r7 = key (0-7)
     lsl(r3, r3, 24)      # isolate low byte
@@ -65,68 +80,81 @@ def _blit_gs2_row(r0, r1, r2, r3):
     bne(LOOP)
     pop({r4, r5, r6, r7})
 
-BG  = [(0,0,0),(30,20,40),(100,0,0),(30,150,150)][1]
-nt = NT35510()
-nt.fill(color565(*BG))
-import time
-import machine 
-machine.freq(240_000_000)
-def mem(name):
-    gc.collect()
-    print("\nMem", name, gc.mem_free())
-    micropython.mem_info()
-    print(f"total time: {time.ticks_ms():,}")
-
-mem("start")
-# quart = bytearray(200*480*2) # 200 lines of 480 pixels, 2 bytes per pixel
-
+# Optional shared arena for font data. Callers may pre-allocate one buffer
+# (font_base.font_buffer = bytearray(n)) before constructing Fonts; each
+# Font then claims a slice of it instead of allocating its own bytearray,
+# keeping all font data in a single contiguous block.
 font_buffer = None
+
 class Font:
-    def __init__(self, path):
-        name = path.split("/")[-1]
-        size = name.split(".")[0].split('-')[-1]
-        width, height = size.split("x")
-        self.char_width = int(width)
-        self.char_height = int(height)
+    """Renderer for .raw2 bitmap fonts (2-bit anti-aliased grayscale).
+
+    Binary file layout (for the printable ASCII range 32..126, 95 chars):
+        [95 width bytes][95 glyphs x bytes_per_char]
+    Each glyph is a fixed cell of char_width x char_height pixels stored as
+    GS2_HMSB (2 bits/pixel, 4 gray levels, 4 pixels/byte), with
+    row_size = (char_width + 3) // 4 bytes. The per-character width table
+    gives the proportional advance width used when laying out text.
+
+    The cell dimensions are parsed from the filename, which must look like
+    'Name-Size-WxH.raw2' (e.g. 'Roboto-16-14x18.raw2').
+
+    Rendering parameters shared by the draw methods:
+        key      -- palette index 0-3 treated as transparent, or -1 to
+                    draw all pixels (opaque).
+        palette  -- 4-entry RGB565 palette buffer (see color_control
+                    .make_palette); None uses the font's default palette.
+    """
+
+    def __init__(self, path, display, bg=0, palette=None):
+        """Load a .raw2 font.
+
+        path     -- font file path; filename encodes the cell size (WxH).
+        display  -- NT35510 (or compatible) instance; rendered lines are
+                    pushed to it and its width/height bound the drawing.
+        bg       -- RGB565 color the line buffer is filled with before
+                    glyphs are drawn (the text background).
+        palette  -- default 4-entry RGB565 palette; PALETTE_WHITE if None.
+        """
+        name = path.rsplit("/", 1)[-1]
+        try:
+            size = name.rsplit(".", 1)[0].rsplit("-", 1)[-1]
+            width, height = size.split("x")
+            self.char_width = int(width)
+            self.char_height = int(height)
+        except ValueError:
+            raise ValueError(
+                "Font filename must look like 'Name-Size-WxH.raw2', got %r" % name)
         row_size = (self.char_width + 3) // 4
         self.bytes_per_char = row_size * self.char_height
-        num_chars = 127-32
-        data_len = num_chars + num_chars * self.bytes_per_char
+        data_len = _NUM_CHARS + _NUM_CHARS * self.bytes_per_char
         global font_buffer
 
-        f = open(path, "rb")
-        if font_buffer is None:
-            data = memoryview(bytearray(f.read(data_len)))
-            print(f"Loaded {len(data)} bytes from {path}, no buffer")
-        else:
-            count = f.readinto(font_buffer)
-            if count < 1:
-                print("Failed to read font", path)
-            elif count >= len(font_buffer):
-                print("Ran out of font buffer", count, len(font_buffer))
+        with open(path, "rb") as f:
+            if font_buffer is None:
+                data = memoryview(bytearray(f.read(data_len)))
+                print(f"Loaded {len(data)} bytes from {path}, no buffer")
             else:
+                count = f.readinto(font_buffer)
+                if count < data_len:
+                    raise OSError(
+                        "Short read from %s: got %d bytes, need %d" % (path, count, data_len))
+                if count >= len(font_buffer):
+                    raise OSError(
+                        "Font buffer too small for %s: read %d into %d" % (path, count, len(font_buffer)))
                 data = font_buffer[:count]
                 font_buffer = font_buffer[count:]
                 print(f"Loaded {len(data)} bytes from {path}, {len(font_buffer)} buf remaining")
 
-        self.widths = data[0:num_chars]
-        self.data = data[num_chars:]
+        self.widths = data[0:_NUM_CHARS]
+        self.data = data[_NUM_CHARS:]
 
-        # --- glyph cache (NO per-char FrameBuffer allocation) ---
-        self._glyph_fb = [None] * num_chars
-        for v in range(num_chars):
-            start = v * self.bytes_per_char
-            mv = self.data[start : start + self.bytes_per_char]   # memoryview slice (no copy)
-            self._glyph_fb[v] = framebuf.FrameBuffer(
-                mv, self.char_width, self.char_height, framebuf.GS2_HMSB
-            )
-        
+        self.nt = display
         self._line_fb = None
         self._line_w  = 0
-        self.bg = color565(*BG)
-        self.pal_default = PALETTE_WHITE
-        #print("Font", name, self.char_width, self.char_height, data_len, len(self.data))
-    
+        self.bg = bg
+        self.pal_default = palette if palette else PALETTE_WHITE
+
     def _ensure_line_fb(self, FBClass, w):
         # allocate only when we need a bigger buffer than before
         if self._line_fb is None or w > self._line_w:
@@ -135,16 +163,30 @@ class Font:
 
 
     def draw_text_bytes(self, s, FBClass, x0, y0, key=0, palette=None):
-        max_w = 480 - x0
+        """Draw a single line of text at (x0, y0), clipped to the display
+        width. Returns the pixel width actually rendered."""
+        max_w = self.nt.width - x0
         text_w = self.get_width(s)
         if text_w > max_w:
             text_w = max_w
         self._ensure_line_fb(FBClass, text_w)
         return self._draw_bytes_range(s, 0, len(s), FBClass, x0, y0,
                                       key, palette, text_w)
-    
-    
-    def wrap_text_viper(self, text, FBClass, ix, iy, width, force_cut=False, lim=(0,480), vert_swish=0, key=0, palette=None):
+
+
+    def wrap_text_viper(self, text, FBClass, ix, iy, width, force_cut=False, lim=None, vert_swish=0, key=0, palette=None):
+        """Word-wrap and draw `text` in a column `width` px wide starting
+        at (ix, iy).
+
+        force_cut  -- also split words wider than the column.
+        lim        -- (top, bottom) vertical clip window in display pixels;
+                      lines outside it are measured but not drawn. Defaults
+                      to the full display height.
+        vert_swish -- pixels to shave off the line height (tighter leading).
+
+        Returns (end_y, line_height, in_bounds); in_bounds is False when
+        the text ran past the bottom clip limit.
+        """
         if not text:
             return iy, self.char_height, True
 
@@ -152,6 +194,9 @@ class Font:
             b = text.encode("ascii", "replace")
         else:
             b = text
+
+        if lim is None:
+            lim = (0, self.nt.height)
 
         # allocate reusable line buffer once (critical)
         self._ensure_line_fb(FBClass, width)
@@ -246,7 +291,7 @@ class Font:
                         in_bounds = 0
                         break
 
-                    y += ch_h 
+                    y += ch_h
                     line_start = ws
                     line_end = we
                     line_w = word_w
@@ -309,6 +354,9 @@ class Font:
     @micropython.viper
     def _fast_blit_2(self, fb: object, fb_w: int, v: int, x0: int, pal_addr: int, key: int,
                     slf_data: int, btc: int, row_stride: int, h: int):
+        # Blit glyph index v into line buffer fb at x offset x0 using the
+        # asm row blitter. slf_data/btc/row_stride/h are hoisted by the
+        # caller so they are computed once per line, not per glyph.
         n_bytes: int = row_stride
         # Common case: no right clipping.
         # row_stride GS2 bytes = row_stride * 4 pixels.
@@ -331,11 +379,13 @@ class Font:
     def _draw_bytes_range(self, b: object, start: int, end: int,
                           FBClass: object, x0: int, y0: int,
                           key: int, palette: object, max_w: int) -> int:
+        # Render bytes b[start:end] into the shared line buffer, then push
+        # it to the display at (x0, y0). Returns the pixel width drawn.
         bp = ptr8(b)
         widths = ptr8(self.widths)
         fb = self._line_fb
         fb_w: int = int(fb.width)
-        fb.fill(int(self.bg))# >> 8 | (int(self.bg)&0xff) << 8)
+        fb.fill(int(self.bg))
         pal = palette if palette else self.pal_default
         pal_addr: int = int(ptr8(pal.buffer))
         x: int = 0
@@ -349,18 +399,18 @@ class Font:
             if v < 32 or v > 126:
                 v = 32
             v -= 32
-            #fb.blit(self._glyph_fb[v], x, 0, key, pal)
             self._fast_blit_2(fb, fb_w, v, x, pal_addr, key, slf_data, btc, src_stride, h)
             x += int(widths[v])
             if x >= max_w:
                 break
             i += 1
-        nt.draw_framebuf(x0, y0, fb)
+        self.nt.draw_framebuf(x0, y0, fb)
         return x
 
     @micropython.viper
     def get_width(self, word: object) -> int:
-        w_ptr = ptr8(self.widths) 
+        """Return the pixel width of `word` (str or bytes) in this font."""
+        w_ptr = ptr8(self.widths)
         w_buf = ptr8(word)
         w_len = int(len(word))
         total_width: int = 0
@@ -372,89 +422,5 @@ class Font:
             v -= 32
             total_width += int(w_ptr[v])
             i += 1
-            
+
         return total_width
-    
-font1 = Font("/InterBold-14-15x18.raw2")
-# font1 = Font("/fonts/Marseille-22-25x23.raw2")
-# font1 = Font("Astroz-36-35x38.raw2")
-# font1 = Font("HelloPain-36-37x41.raw2")
-# font1 = Font("/fonts/Dejavu-10-10x10.raw2")
-font1 = Font("/fonts/Roboto-16-14x18.raw2")
-# font1 = Font("/fonts/Strong-18-17x18.raw2")
-# font1 = Font("/fonts/HelloPain-12-13x15.raw2")
-# font1 = Font("/fonts/Astroz-16-15x18.raw2")
-# font1 = Font("/fonts/Marseille-22-25x23.raw2")
-# font1 = Font("/fonts/Hollyberry-20-19x20.raw2")
-example_long = 'Mao Li Qiu looked at the light on Fang Yuan\'s body, there was nothing it could do, it bore its fangs and scratched the ground with its claws, causing deep marks to form.\n\nBai Ning Bing\'s and Hei Lou Lan\'s eyelids were twitching, they were evidently moved.\n\nZhao Lian Yun had woken up, she looked at Ma Hong Yun\'s corpse, held in Fang Yuan\'s arm, her tears were flowing out.\n\nShe cried in her heart: "Hong Yun, Hong Yun, how could you leave me like this. Without you, I am all alone in this world. What is the point of living? Do you know, the perseverance of one person is so difficult!"\n\nHow difficult is the perseverance of one person?\n\nAll of the Gu Immortals here could answer that question.\n\nBecause among them, some persevered because of responsibility, some persevered because of hatred, some persevered because of excitement, and some persevered because of love?\n\nAnd Fang Yuan\'s answer?\n\nHe was still expressionless, he continued to move forward relentlessly.\n\nI had once screamed, gradually, I lost my voice.\n\nI had once cried, gradually, I lost my tears.\n\nI had once grieved, gradually, I became able to withstand everything.'
-# example_long = """To man the world is twofold, in accordance with his twofold attitude. The attitude of man is twofold, in accordance with the twofold nature of the primary words which he speaks. The primary words are not isolated words, but combined words. The one primary word is the combination I-Thou. The other primary word is the combination I-It; wherein, without a change in the primary word, one of the words He and She can replace It. Hence the I of man is also twofold. For the I of the primary word I-Thou is a different I from that of the primary word I-It. Primary words do not signify things, but. they intimate relations. Primary words do not describe something that might exist independently of them, but being spoken they bring about existence. Primary words are spoken from the being. If Thou is said, the I of the combination I-Thou is said along with it. If It is said, the I of the combination I-It is said along with it. The primary word I-Thou can only be spoken with the whole being. • The primary word I-It can never be spoken with the whole being. * 3"""
-example_long = """Peter Piper picked a peck of pickled peppers.\nA peck of pickled peppers Peter Piper picked.\nIf Peter Piper picked a peck of pickled peppers,\nWhere's the peck of pickled peppers Peter Piper picked?"""
-# example_long = """Of all elements that are solid at room temperature, caesium is the softest: it has a hardness of Mohs 0.2. It is a very ductile, pale metal, which darkens in the presence of trace amounts of oxygen.[14][15][16] When in the presence of mineral oil (where it is best kept during transport), it loses its metallic lustre and takes on a duller, grey appearance. It has a melting point of 28.5 °C (83.3 °F), making it one of the few elemental metals that are liquid near room temperature. The others are rubidium (39 °C [102 °F]), francium (estimated at 27 °C [81 °F]), mercury (−39 °C [−38 °F]), and gallium (30 °C [86 °F]); bromine is also liquid at room temperature (melting at −7.2 °C [19.0 °F]), but it is a halogen and not a metal. Mercury is the only stable elemental metal with a known melting point lower than caesium.[17] In addition, caesium has a rather low boiling point, 641 °C (1186 °F), the lowest of all stable metals other than mercury.[18] Copernicium and flerovium have been predicted to have lower boiling points than mercury and caesium, but they are extremely radioactive and it is not certain that they are metals.[19][20]"""
-example = "Hello 2 3 23World! aeyshdvfudvtbyktvdtfbyhiuguvtjbnkhgrvfbguylbony;"
-example1 = "hi"
-items = os.listdir("/fonts")
-test: int = 1
-times: int = 1
-i: int = 0
-t0: int = time.ticks_us()
-if test == 0:
-    times: int = 44
-    while i < times:
-        font1.draw_text_bytes(example, MyFrameBuffer, 5, 0+i*20,0,None)
-        i += 1
-elif test == 1:
-    times: int = len(items)
-    for i in range(len(items)):
-        print(f"trying font:/fonts/{items[i]}")
-        # print(f"following font:/fonts/{items[i+1]}")
-        # if f"/fonts/{items[i]}" in ["/fonts/Marseille-22-25x23.raw2","/fonts/MontserratR-18-20x20.raw2","/fonts/PlayfairR-18-17x20.raw2"]:
-        #     continue
-        font1 = Font(f"/fonts/{items[i]}")
-        examplein = f"{items[i][:-5]} {example[:40]}"
-        font1.draw_text_bytes(examplein, MyFrameBuffer, 2, 0+i*20,0,None)
-elif test == 2:
-    example = example_long
-    font1.wrap_text_viper(example,MyFrameBuffer,0,0,480,lim=(0,800))#,vert_swish=14)
-elif test == 3:
-    example = ".............................."#"Hello World!"
-    font1.draw_text_bytes(example, MyFrameBuffer, 0, 20,0,None)
-elif test == 4:
-    nt.fb_text("example", 20, 20)
-elif test == 5: # spped numbers
-    i = 0
-    prev = time.ticks_us()
-    while i < 1_000_000:
-        val = str(i*1000000//time.ticks_diff(time.ticks_us(), prev))
-        font1.draw_text_bytes(val, MyFrameBuffer, 0, 20, 0, None)
-        if i % 400 == 0:
-            print(val)
-        i += 1
-elif test == 6:
-    example = "h"
-    font1.draw_text_bytes(example, MyFrameBuffer, 5, 0+i*20,0,None)
-
-t1 = time.ticks_us()
-t2 = time.ticks_us()
-t3 = time.ticks_cpu()
-# font1.get_width(example)
-t4 = time.ticks_cpu()
-print(f"draw_text-test{test}: prep fb {t1-t0:,}us, draw chars, control {t2-t1:,}us - {t4-t3:,}cpu, letters per second: {len(example)*times / ((t1-t0) / 1_000_000):,.2f}, us per letter: {(t1-t0) / (len(example)*times):,}")
-print(f"Opperations per pixel: {machine.freq()*(t1-t0)/(1_000_000*font1.get_width(example)*font1.char_height*times):,}, alternate calculation: {(t1-t0) / (len(example)*times) * 1000 / (font1.char_height*font1.char_width):,}")
-
-print(machine.freq())
-mem("end")
-
-# Mem start 8607696
-# stack: 756 out of 12032
-# GC: total: 8641216, used: 33520, free: 8607696
-#  No. of 1-blocks: 71, 2-blocks: 95, max blk sz: 359, max free sz: 512276
-# total time: 227,788
-# Loaded 6935 bytes from /InterBold-14-15x18.raw2, no buffer
-# draw_text-test0: prep fb 213,789us, draw chars, control 6us - 4cpu, letters per second: 14200.92, us per letter: 70.418
-# 240000000
-
-# Mem end 8575776
-# stack: 756 out of 12032
-# GC: total: 8641216, used: 65440, free: 8575776
-#  No. of 1-blocks: 213, 2-blocks: 238, max blk sz: 1069, max free sz: 512276
-# total time: 228,219
